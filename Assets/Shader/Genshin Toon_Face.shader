@@ -4,11 +4,13 @@ Shader "Genshin Toon/Genshin Toon_Face" //着色器名称
     {
         [Header(Texture)] //纹理头
         _BaseMap ("Base Map", 2D) = "white" {} //基础贴图
+
         [Header(Shadow Options)]
         [Toggle (_USE_SDF_SHADOW)] _USE_SDF_SHADOW ("Use SDF Shadow", Range(0,1)) = 1 //使用SDF阴影开关
         _SDF ("SDF", 2D) = "white" {} //距离场纹理
         _ShadowMask ("Shadow Mask", 2D) = "white" {} //阴影遮罩贴图
         _ShadowColor ("Shadow Color", Color) = (1,0.87,0.87,1) //阴影颜色
+
         [Header(Head Direction)]
         [HideInInspector]_HeadForward ("Head Forward", Vector) = (0,0,1,0) //头部前方向量
         [HideInInspector]_HeadRight ("Head Right", Vector) = (1,0,0,0) //头部右方向量
@@ -70,7 +72,7 @@ Shader "Genshin Toon/Genshin Toon_Face" //着色器名称
             #pragma vertex vert //声明顶点着色器函数
             #pragma fragment frag //声明片元着色器函数
 
-            struct attributions //顶点着色器输入参数
+            struct attributes //顶点着色器输入参数
             {
                 float4 vertex : POSITION; //顶点位置
                 float2 uv : TEXCOORD0; //顶点纹理坐标
@@ -84,7 +86,7 @@ Shader "Genshin Toon/Genshin Toon_Face" //着色器名称
                 float3 normalWS : TEXCOORD1; //世界空间法线
             };
 
-            varyings vert(attributions v) //顶点着色器主函数
+            varyings vert(attributes v) //顶点着色器主函数
             {
                 // 顶点着色器逻辑（如果需要，可以在这里添加）
                 varyings o; // 输出变量
@@ -191,7 +193,7 @@ Shader "Genshin Toon/Genshin Toon_Face" //着色器名称
             float3 _LightDirection; //光照方向
             float3 _LightPosition; //光照位置
 
-            struct attributions //顶点着色器输入参数
+            struct attributes //顶点着色器输入参数
             {
                 float4 positionOS : POSITION; //顶点位置
                 float3 normalOS : NORMAL; //顶点法线
@@ -203,7 +205,7 @@ Shader "Genshin Toon/Genshin Toon_Face" //着色器名称
             };
 
             // 将阴影的世界空间顶点位置转换为适合阴影投射的裁剪空间位置
-            float4 GetShadowPositionHClip(attributions v)
+            float4 GetShadowPositionHClip(attributes v)
             {
                 float3 positionWS = TransformObjectToWorld(v.positionOS.xyz); // 将本地空间顶点坐标转换为世界空间顶点坐标
                 float3 normalWS = TransformObjectToWorldNormal(v.normalOS); // 将本地空间法线转换为世界空间法线
@@ -226,7 +228,7 @@ Shader "Genshin Toon/Genshin Toon_Face" //着色器名称
                 return positionCS; // 返回裁剪空间顶点坐标
             }
 
-            varyings ShadowVS (attributions v) //阴影投射顶点着色器主函数
+            varyings ShadowVS (attributes v) //阴影投射顶点着色器主函数
             {
                 varyings o; // 输出变量
                 o.positionCS = GetShadowPositionHClip(v); // 获取阴影裁剪空间位置

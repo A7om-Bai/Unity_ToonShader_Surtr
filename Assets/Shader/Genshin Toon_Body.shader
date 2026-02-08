@@ -64,12 +64,14 @@ Shader "Genshin Toon/Genshin Toon_Body" //着色器名称
                 "LightMode" = "UniversalForward" //光照模式为通用前向
             }
 
+            Cull Off //关闭面剔除
+
             HLSLPROGRAM //HLSL程序开始
 
             #pragma vertex vert //声明顶点着色器函数
             #pragma fragment frag //声明片元着色器函数
 
-            struct appdata //顶点着色器输入参数
+            struct attributes //顶点着色器输入参数
             {
                 float4 vertex : POSITION; //顶点位置
                 float2 uv : TEXCOORD0; //顶点纹理坐标
@@ -78,7 +80,7 @@ Shader "Genshin Toon/Genshin Toon_Body" //着色器名称
                 float4 color : COLOR; //顶点颜色
             };
 
-            struct v2f //片元着色器输入参数
+            struct varryings //片元着色器输入参数
             {
                 float4 pos : SV_POSITION; //裁剪空间位置
                 float2 uv : TEXCOORD0; //纹理坐标
@@ -87,10 +89,10 @@ Shader "Genshin Toon/Genshin Toon_Body" //着色器名称
                 half4 color : COLOR; //顶点颜色
             };
 
-            v2f vert(appdata v) //顶点着色器主函数
+            varryings vert(attributes v) //顶点着色器主函数
             {
                 // 顶点着色器逻辑（如果需要，可以在这里添加）
-                v2f o; // 输出变量
+                varryings o; // 输出变量
                 VertexPositionInputs VertexInput = GetVertexPositionInputs (v.vertex.xyz); // 获取顶点位置
                 VertexNormalInputs NormalInput = GetVertexNormalInputs(v.normal, v.tangent); // 获取顶点法线和切线
                 o.normalWS = NormalInput.normalWS; // 传递世界空间法线
@@ -104,7 +106,7 @@ Shader "Genshin Toon/Genshin Toon_Body" //着色器名称
                 return o; // 返回裁剪空间位置
             }
 
-            half4 frag(v2f i) : SV_Target //片段着色器主函数
+            half4 frag(varryings i) : SV_Target //片段着色器主函数
             {
                 // 片段着色器逻辑（如果需要，可以在这里添加）
                 Light light = GetMainLight(); // 获取主光源
@@ -203,19 +205,19 @@ Shader "Genshin Toon/Genshin Toon_Body" //着色器名称
             float3 _LightDirection; //光照方向
             float3 _LightPosition; //光照位置
 
-            struct appdata //顶点着色器输入参数
+            struct attributes //顶点着色器输入参数
             {
                 float4 positionOS : POSITION; //顶点位置
                 float3 normalOS : NORMAL; //顶点法线
             };
 
-            struct v2f //片元着色器输入参数
+            struct varryings //片元着色器输入参数
             {
                 float4 positionCS : SV_POSITION; //裁剪空间位置
             };
 
             // 将阴影的世界空间顶点位置转换为适合阴影投射的裁剪空间位置
-            float4 GetShadowPositionHClip(appdata v)
+            float4 GetShadowPositionHClip(attributes v)
             {
                 float3 positionWS = TransformObjectToWorld(v.positionOS.xyz); // 将本地空间顶点坐标转换为世界空间顶点坐标
                 float3 normalWS = TransformObjectToWorldNormal(v.normalOS); // 将本地空间法线转换为世界空间法线
@@ -238,14 +240,14 @@ Shader "Genshin Toon/Genshin Toon_Body" //着色器名称
                 return positionCS; // 返回裁剪空间顶点坐标
             }
 
-            v2f ShadowVS (appdata v) //阴影投射顶点着色器主函数
+            varryings ShadowVS (attributes v) //阴影投射顶点着色器主函数
             {
-                v2f o; // 输出变量
+                varryings o; // 输出变量
                 o.positionCS = GetShadowPositionHClip(v); // 获取阴影裁剪空间位置
                 return o; // 返回裁剪空间位置
             }
 
-            float4 ShadowFS(v2f i) : SV_Target //阴影投射片段着色器主函数
+            float4 ShadowFS(varryings i) : SV_Target //阴影投射片段着色器主函数
             {
                 return 0; // 返回0表示完全遮挡
             }
