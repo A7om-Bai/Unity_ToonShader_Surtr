@@ -130,7 +130,7 @@ Shader "Genshin Toon/Genshin Toon_Face" //着色器名称
                 half mixSdf = lerp(sdfRight, sdfLeft, exposeRight); // 采样SDF纹理
                 // half sdf = step(mixValue, mixSdf); // 计算硬边界阴影
                 float sdfSoft = 0.05; // 可做成属性
-                half sdf = smoothstep(mixValue - sdfSoft, mixValue + sdfSoft, mixSdf);
+                half sdf = smoothstep(mixValue - sdfSoft, mixValue + sdfSoft, mixSdf); // 计算软边界阴影
 
                 sdf = lerp(0, sdf, step(0, dot(LpHeadHorizon, headForwardDir))); // 计算右侧阴影
                 sdf *= shadowMask.g; // 使用G通道控制阴影强度
