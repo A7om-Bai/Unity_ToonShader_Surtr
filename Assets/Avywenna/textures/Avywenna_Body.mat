@@ -124,22 +124,26 @@ Material:
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
-    - _Exposure: 0.95
+    - _Exposure: 1.03
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
-    - _NormalStrength: 0.44
+    - _NormalStrength: 0.78
     - _OcclusionStrength: 1
+    - _OutlineWidth: 0.00108
     - _Parallax: 0.005
     - _QueueOffset: 12
     - _ReceiveShadows: 1
-    - _ShadowPosition: 1.25
+    - _RimIntensity: 1.13
+    - _RimPower: 0.89
+    - _ShadowPosition: 1.2
     - _ShadowRampWidth: 1.4
-    - _ShadowSoftness: 0.67
+    - _ShadowSoftness: 0.87
     - _Smoothness: 0.395
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
+    - _SpecularStrength: 1.05
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
@@ -150,6 +154,8 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0.1509434, g: 0.1509434, b: 0.1509434, a: 1}
+    - _OutlineColor: {r: 0.11320752, g: 0.06140974, b: 0.06140974, a: 1}
+    - _RimColor: {r: 1, g: 1, b: 1, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _Tint: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

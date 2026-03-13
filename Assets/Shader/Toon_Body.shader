@@ -95,16 +95,16 @@ Shader "Toon Shader/Toon_Body"
 
             struct attributes
             {
-                float4 vertex : POSITION;
+                float4 positionOS : POSITION;
                 float2 uv : TEXCOORD0;
-                float3 normal : NORMAL;
-                float4 tangent : TANGENT;
+                float3 normalOS : NORMAL;
+                float4 tangentOS : TANGENT;
                 float4 color : COLOR;
             };
 
             struct varryings
             {
-                float4 pos : SV_POSITION;
+                float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
                 float3 normalWS : TEXCOORD1;
                 float4 tangentWS : TEXCOORD2;
@@ -115,13 +115,13 @@ Shader "Toon Shader/Toon_Body"
             varryings vert(attributes v)
             {
                 varryings o;
-                VertexPositionInputs VertexInput = GetVertexPositionInputs (v.vertex.xyz);
-                VertexNormalInputs NormalInput = GetVertexNormalInputs(v.normal, v.tangent);
+                VertexPositionInputs VertexInput = GetVertexPositionInputs (v.positionOS.xyz);
+                VertexNormalInputs NormalInput = GetVertexNormalInputs(v.normalOS, v.tangentOS);
                 o.positionWS = VertexInput.positionWS;
                 o.normalWS = NormalInput.normalWS;
-                o.tangentWS = float4(NormalInput.tangentWS, v.tangent.w);
+                o.tangentWS = float4(NormalInput.tangentWS, v.tangentOS.w);
                 
-                o.pos = VertexInput.positionCS;
+                o.positionCS = VertexInput.positionCS;
                 o.uv = v.uv;
                 o.color = v.color;
                 return o;
@@ -188,9 +188,9 @@ Shader "Toon Shader/Toon_Body"
                 float3 rimLight = rim * _RimColor.rgb * _RimIntensity;
 
                 #ifdef _USE_RAMP_SHADOW
-                    half3 finalcolor = baseColor.rgb * rampColor * (isShadowArea ? 1 : 1.2) + specular + rimLight; // 设置最终颜色为基础贴图颜色乘以渐变贴图颜色，在非阴影区域稍微提亮
+                    half3 finalcolor = baseColor.rgb * rampColor * (isShadowArea ? 1 : 1.2) + specular + rimLight; // 在阴影区域内使用渐变阴影颜色，在非阴影区域内略微提升亮度
                 #else
-                    half3 finalcolor = baseColor.rgb * halflambert + specular + rimLight;
+                    half3 finalcolor = baseColor.rgb * halflambert + specular + rimLight; // 不使用渐变阴影时，直接使用半兰伯特光照模型计算颜色，并添加高光和边缘光照
                 #endif
 
                 half3 c = finalcolor;
@@ -202,7 +202,7 @@ Shader "Toon Shader/Toon_Body"
                 finalcolor = c;
 
 
-                return float4(finalcolor, 1);
+                return half4(finalcolor, 1);
             }
 
             ENDHLSL
@@ -296,8 +296,6 @@ Shader "Toon Shader/Toon_Body"
 
             #pragma vertex vert
             #pragma fragment frag
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             struct Attributes
             {

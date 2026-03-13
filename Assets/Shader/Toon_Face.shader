@@ -1,40 +1,40 @@
-Shader "Toon Shader/Toon_Face" //着色器名称
+Shader "Toon Shader/Toon_Face"
 {
-    Properties //属性,相当于一个公共变量区
+    Properties
     {
-        [Header(Texture)] //纹理头
-        _BaseMap ("Base Map", 2D) = "white" {} //基础贴图
+        [Header(Texture)]
+        _BaseMap ("Base Map", 2D) = "white" {}
 
         [Header(Shadow Options)]
-        [Toggle (_USE_SDF_SHADOW)] _USE_SDF_SHADOW ("Use SDF Shadow", Range(0,1)) = 1 //使用SDF阴影开关
-        _SDF ("SDF", 2D) = "white" {} //距离场纹理
-        _ShadowMask ("Shadow Mask", 2D) = "white" {} //阴影遮罩贴图
-        _ShadowColor ("Shadow Color", Color) = (1,0.87,0.87,1) //阴影颜色
+        [Toggle (_USE_SDF_SHADOW)] _USE_SDF_SHADOW ("Use SDF Shadow", Range(0,1)) = 1
+        _SDF ("SDF", 2D) = "white" {}
+        _ShadowMask ("Shadow Mask", 2D) = "white" {}
+        _ShadowColor ("Shadow Color", Color) = (1,0.87,0.87,1)
 
         [Header(Head Direction)]
-        [HideInInspector]_HeadForward ("Head Forward", Vector) = (0,0,1,0) //头部前方向量
-        [HideInInspector]_HeadRight ("Head Right", Vector) = (1,0,0,0) //头部右方向量
-        [HideInInspector]_HeadUp ("Head Up", Vector) = (0,1,0,0) //头部上方向量
+        [HideInInspector]_HeadForward ("Head Forward", Vector) = (0,0,1,0)
+        [HideInInspector]_HeadRight ("Head Right", Vector) = (1,0,0,0)
+        [HideInInspector]_HeadUp ("Head Up", Vector) = (0,1,0,0)
 
         [Header(Outline)]
         _OutlineWidth ("Outline Width", Range(0,0.002)) = 0.001
         _OutlineColor ("Outline Color", Color) = (0,0,0,1)
 
         [Header(PostProcessing)]
-        _Exposure ("Exposure", Range(0.5, 2.0)) = 1.0 //曝光
-        _Contrast ("Contrast", Range(0.0, 2.0)) = 1.0 //对比度
-        _Tint ("Tint", Color) = (1,1,1,1) //色调
+        _Exposure ("Exposure", Range(0.5, 2.0)) = 1.0
+        _Contrast ("Contrast", Range(0.0, 2.0)) = 1.0
+        _Tint ("Tint", Color) = (1,1,1,1)
     }
 
-    SubShader //子着色器
+    SubShader
     {
-        Tags //标签
+        Tags
         {
-            "RenderType"="Opaque" //渲染类型为不透明
-            "RenderPipeline" = "UniversalRenderPipeline" //渲染管线为通用渲染管线
+            "RenderType"="Opaque"
+            "RenderPipeline" = "UniversalRenderPipeline"
         }
 
-        HLSLINCLUDE //HLSL包含
+        HLSLINCLUDE
             #pragma multi_compile _MAIN_LIGHT_SHADOWS // 主光源阴影
             #pragma multi_compile _MAIN_LIGHT_SHADOWS_CASCADE // 主光源阴影级联
             #pragma multi_compile _MAIN_LIGHT_SHADOWS_SCREEN // 主光源阴影屏幕空间
@@ -47,150 +47,155 @@ Shader "Toon Shader/Toon_Face" //着色器名称
 
             #pragma shader_feature_local _USE_SDF_SHADOW // 使用SDF阴影特性
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl" // 核心库
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl" // 光照库
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-            CBUFFER_START (UnityPerMaterial) // 材质常量缓冲区开始
-                sampler2D _BaseMap; // 基础贴图采样器
-                sampler2D _SDF; // SDF采样器
-                sampler2D _ShadowMask; // 阴影遮罩采样器
-                float3 _HeadForward; // 头部前方向量
-                float3 _HeadRight; //头部右方向量
-                float3 _HeadUp; // 头部上方向量
-                float4 _ShadowColor; // 阴影颜色
-                float _Exposure; // 曝光
-                float _Contrast; // 对比度
-                float4 _Tint; // 色调
-                float _OutlineWidth; // 轮廓宽度
-                float4 _OutlineColor; // 轮廓颜色
-            CBUFFER_END // 常量缓冲区结束
-        ENDHLSL //结束HLSL
+            CBUFFER_START (UnityPerMaterial)
+                sampler2D _BaseMap;
+                sampler2D _SDF;
+                sampler2D _ShadowMask;
+                float3 _HeadForward;
+                float3 _HeadRight;
+                float3 _HeadUp;
+                float4 _ShadowColor;
+                float _Exposure;
+                float _Contrast;
+                float4 _Tint;
+                float _OutlineWidth;
+                float4 _OutlineColor;
+            CBUFFER_END
+        ENDHLSL
 
-        Pass //通道
+        Pass
         {
-            Name "UniversalForward" //通道名称
+            Name "UniversalForward"
 
-            Tags //标签
+            Tags
             {
-                "LightMode" = "UniversalForward" //光照模式为通用前向
+                "LightMode" = "UniversalForward"
             }
 
-            HLSLPROGRAM //HLSL程序开始
+            HLSLPROGRAM
 
-            #pragma vertex vert //声明顶点着色器函数
-            #pragma fragment frag //声明片元着色器函数
+            #pragma vertex vert
+            #pragma fragment frag
 
-            struct attributes //顶点着色器输入参数
+            struct attributes
             {
-                float4 vertex : POSITION; //顶点位置
-                float2 uv : TEXCOORD0; //顶点纹理坐标
-                float3 normal : NORMAL; //顶点法线
+                float4 positionOS : POSITION;
+                float2 uv : TEXCOORD0;
+                float3 normalOS : NORMAL;
             };
 
-            struct varyings //片元着色器输入参数
+            struct varyings
             {
-                float4 posCS : SV_POSITION; //裁剪空间位置
-                float2 uv : TEXCOORD0; //纹理坐标
-                float3 normalWS : TEXCOORD1; //世界空间法线
+                float4 positionCS : SV_POSITION;
+                float2 uv : TEXCOORD0;
+                float3 normalWS : TEXCOORD1;
             };
 
-            varyings vert(attributes v) //顶点着色器主函数
+            varyings vert(attributes v)
             {
-                // 顶点着色器逻辑（如果需要，可以在这里添加）
-                varyings o; // 输出变量
-                VertexPositionInputs VertexInput = GetVertexPositionInputs (v.vertex.xyz); // 获取顶点位置
-                VertexNormalInputs NormalInput = GetVertexNormalInputs (v.normal); // 获取顶点法线
-                o.posCS = VertexInput.positionCS; // 设置裁剪空间位置
-                o.normalWS = NormalInput.normalWS; // 传递世界空间法线
-                o.uv = v.uv; // 传递纹理坐标
-                return o; // 返回裁剪空间位置
+                varyings o;
+                VertexPositionInputs VertexInput = GetVertexPositionInputs (v.positionOS.xyz);
+                VertexNormalInputs NormalInput = GetVertexNormalInputs (v.normalOS);
+                o.positionCS = VertexInput.positionCS;
+                o.normalWS = NormalInput.normalWS;
+                o.uv = v.uv;
+                return o;
             }
 
-            half4 frag(varyings i) : SV_Target //片段着色器主函数
+            half4 frag(varyings i) : SV_Target
             {
-                // 片段着色器逻辑（如果需要，可以在这里添加）
-                Light light = GetMainLight(); // 获取主光源
-                half3 N = normalize(i.normalWS); // 计算法线
-                half3 L = normalize(light.direction); // 计算光照方向
-                half NoL = dot(N,L); // 计算法线与光照方向的点积
-                // half3 headUpDir = normalize(_HeadUp); // 头部上方向量归一化
-                // half3 headForwardDir = normalize(_HeadForward); // 头部前方向量归一化
-                // half3 headRightDir = normalize(_HeadRight); // 头部右方向量归一化
+                Light light = GetMainLight();
+                half3 N = normalize(i.normalWS);
+                half3 L = normalize(light.direction);
+                half NoL = dot(N,L);
+
                 half3 headRightDir   = normalize(TransformObjectToWorldDir(half3(1,0,0)));
                 half3 headUpDir      = normalize(TransformObjectToWorldDir(half3(0,1,0)));
                 half3 headForwardDir = normalize(TransformObjectToWorldDir(half3(0,0,1)));
 
+                half4 baseColor = tex2D(_BaseMap, i.uv);
+                half4 shadowMask = tex2D(_ShadowMask, i.uv);
 
-                half4 baseColor = tex2D(_BaseMap, i.uv); // 采样基础贴图颜色
-                half4 shadowMask = tex2D(_ShadowMask, i.uv); // 采样阴影遮罩贴图颜色
+                half lambert = NoL;
+                half halflambert = lambert * 0.5 + 0.5;
+                halflambert *= pow(halflambert,1);
 
-                half lambert = NoL; //Lambert光照（-1到1）
-                half halflambert = lambert * 0.5 + 0.5; //Halflambert光照（0到1）
-                halflambert *= pow(halflambert,1); //增强Halflambert效果
+                //计算光照在头部坐标系中的投影，判断光源相对于头部的方向，生成阴影边界
+                //去除垂直分量，得到光 L 在 Up 方向的分量
+                half3 LpU = dot(L, headUpDir) / pow(length(headUpDir), 2) * headUpDir;
+                //得到光在水平方向的分量，作为头部水平面上的光照方向
+                half3 LpHeadHorizon = normalize(L- LpU);
 
-                half3 LpU = dot(L, headUpDir) / pow(length(headUpDir), 2) * headUpDir; // 计算光源方向在面部上方的投影
-                half3 LpHeadHorizon = normalize(L- LpU); // 光照方向在头部水平面上的投影
-                half value = acos(dot(LpHeadHorizon, headRightDir)) / 3.141592654; // 计算光照方向与面部右方的夹角
-                half exposeRight = step(value, 0.5); // 判断光照是来自右侧还是左侧
-                half valueR = pow(1 - value * 2, 3); // 右侧阴影强度
-                half valueL = pow(value * 2 - 1, 3); // 左侧阴影强度
-                half mixValue = lerp(valueL, valueR, exposeRight); // 混合阴影强度
-                half sdfLeft = tex2D(_SDF, half2(1 - i.uv.x, i.uv.y)).r; // 左侧距离场
-                half sdfRight = tex2D(_SDF, i.uv).r; // 右侧距离场
-                half mixSdf = lerp(sdfRight, sdfLeft, exposeRight); // 采样SDF纹理
-                // half sdf = step(mixValue, mixSdf); // 计算硬边界阴影
-                float sdfSoft = 0.05; // 可做成属性
-                half sdf = smoothstep(mixValue - sdfSoft, mixValue + sdfSoft, mixSdf); // 计算软边界阴影
+                //计算光与头右方向夹角
+                half value = acos(dot(LpHeadHorizon, headRightDir)) / 3.141592654;
 
-                sdf = lerp(0, sdf, step(0, dot(LpHeadHorizon, headForwardDir))); // 计算右侧阴影
-                sdf *= shadowMask.g; // 使用G通道控制阴影强度
-                sdf = lerp(sdf, 1, shadowMask.a); // 使用A通道作为阴影遮罩
+                //判断左右
+                half exposeRight = step(value, 0.5);
 
-                // Merge Color
-                #ifdef _USE_SDF_SHADOW // 如果使用SDF阴影
-                    half3 finalcolor = lerp(_ShadowColor.rgb * baseColor.rgb, baseColor.rgb, sdf); // 设置最终颜色为阴影颜色和基础贴图颜色的混合
-                    // half3 shadowCol = lerp(_ShadowColor.rgb, 1.0.xxx, 0.3);
-                    // half3 finalcolor = lerp(shadowCol * baseColor.rgb, baseColor.rgb, sdf);
+                //计算阴影位置，生成阴影边界
+                half valueR = pow(1 - value * 2, 3);
+                half valueL = pow(value * 2 - 1, 3);
+                half mixValue = lerp(valueL, valueR, exposeRight);
 
+                //左右脸分开采样
+                half sdfLeft = tex2D(_SDF, half2(1 - i.uv.x, i.uv.y)).r;
+                half sdfRight = tex2D(_SDF, i.uv).r;
+
+                //混合
+                half mixSdf = lerp(sdfRight, sdfLeft, exposeRight);
+
+                //柔和阴影边界
+                float sdfSoft = 0.05;
+                half sdf = smoothstep(mixValue - sdfSoft, mixValue + sdfSoft, mixSdf);
+
+                // 只有当头部朝向光源时才考虑SDF阴影，否则直接全亮，避免背面出现不自然的阴影
+                sdf = lerp(0, sdf, step(0, dot(LpHeadHorizon, headForwardDir)));
+                sdf *= shadowMask.g;
+
+                //利用shadowMask的alpha通道控制SDF阴影的强度，避免过于突兀的边界（眼睛、鼻子、嘴巴）
+                sdf = lerp(sdf, 1, shadowMask.a);
+
+                // 如果启用SDF阴影，则使用SDF阴影颜色，否则使用传统的半兰伯特阴影
+                #ifdef _USE_SDF_SHADOW
+                    half3 finalcolor = lerp(_ShadowColor.rgb * baseColor.rgb, baseColor.rgb, sdf);
                 #else
-                    half3 finalcolor = baseColor.rgb * halflambert; // 设置最终颜色为基础贴图颜色
+                    half3 finalcolor = baseColor.rgb * halflambert;
                 #endif
 
-                half frontBoost = saturate(dot(L, headForwardDir)); // 计算面部正面光照增强
-                finalcolor *= lerp(1.0, 1.1, frontBoost); // 增强面部正面光照
+                //正面补光，根据头部朝向光源的程度提升亮度，避免正面过暗（尤其是当光源位于侧面时），且限制在1.1倍
+                half frontBoost = saturate(dot(L, headForwardDir));
+                finalcolor *= lerp(1.0, 1.1, frontBoost);
 
-                // ---- Color Grading (shared) ----
                 half3 c = finalcolor;
-                // 1) tint（用于对齐脸/身体色相/饱和）
                 c *= _Tint.rgb;
-                // 2) exposure（整体提亮/压暗）
                 c *= _Exposure;
-                // 3) contrast（以 0.5 为中心拉对比，避免提亮后发灰）
-                c = (c - 0.5h) * _Contrast + 0.5h;
-                // 防止溢出
+                c = (c - 0.5h) * _Contrast + 0.5h; //contrast（以 0.5 为中心拉对比，避免提亮后发灰）
                 c = saturate(c);
                 finalcolor = c;
 
                 return float4(finalcolor, 1);
             }
 
-            ENDHLSL //HLSL结束
+            ENDHLSL
         }
 
-        Pass //阴影投射通道
+        Pass
         {
-            Name "ShadowCaster" //阴影投射通道名称
-            Tags //标签
+            Name "ShadowCaster"
+            Tags
             {
-                "LightMode" = "ShadowCaster" //光照模式为阴影投射
+                "LightMode" = "ShadowCaster"
             }
 
-            ZWrite On //开启深度写入
-            ZTest LEqual //深度测试模式为小于等于
-            ColorMask 0  //不写入颜色缓冲区
-            Cull Off //关闭面剔除
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+            Cull Off
 
-            HLSLPROGRAM //HLSL程序开始
+            HLSLPROGRAM
             #pragma multi_compile_instancing // 启用GPU实例化编译
             #pragma multi_compile _ DOTS_INSTANCING_ON // 启用DOTS实例化编译
             #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW // 启用点光源阴影
@@ -201,53 +206,51 @@ Shader "Toon Shader/Toon_Face" //着色器名称
             float3 _LightDirection; //光照方向
             float3 _LightPosition; //光照位置
 
-            struct attributes //顶点着色器输入参数
+            struct attributes
             {
-                float4 positionOS : POSITION; //顶点位置
-                float3 normalOS : NORMAL; //顶点法线
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
             };
 
-            struct varyings //片元着色器输入参数
+            struct varyings
             {
-                float4 positionCS : SV_POSITION; //裁剪空间位置
+                float4 positionCS : SV_POSITION;
             };
 
-            // 将阴影的世界空间顶点位置转换为适合阴影投射的裁剪空间位置
             float4 GetShadowPositionHClip(attributes v)
             {
-                float3 positionWS = TransformObjectToWorld(v.positionOS.xyz); // 将本地空间顶点坐标转换为世界空间顶点坐标
-                float3 normalWS = TransformObjectToWorldNormal(v.normalOS); // 将本地空间法线转换为世界空间法线
+                float3 positionWS = TransformObjectToWorld(v.positionOS.xyz);
+                float3 normalWS = TransformObjectToWorldNormal(v.normalOS);
 
-                #if _CASTING_PUNCTUAL_LIGHT_SHADOW // 点光源
-                    float3 lightDirectionWS = normalize(_LightPosition - positionWS); // 计算光源方向
-                #else // 平行光
-                    float3 lightDirectionWS = _LightDirection; // 使用预定义的光源方向
+                #if _CASTING_PUNCTUAL_LIGHT_SHADOW
+                    float3 lightDirectionWS = normalize(_LightPosition - positionWS);
+                #else
+                    float3 lightDirectionWS = _LightDirection;
                 #endif
 
-                float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS)); // 应用阴影偏移
+                float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
 
-                // 根据平台的Z缓冲区方向调整Z值
-                #if UNITY_REVERSED_Z // 反转Z缓冲区
-                    positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE); // 限制Z值在近裁剪平面以下
-                #else // 正向Z缓冲区
-                    positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE); // 限制Z值在远裁剪平面以上
+                #if UNITY_REVERSED_Z
+                    positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);
+                #else
+                    positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
                 #endif
 
-                return positionCS; // 返回裁剪空间顶点坐标
+                return positionCS;
             }
 
-            varyings ShadowVS (attributes v) //阴影投射顶点着色器主函数
+            varyings ShadowVS (attributes v)
             {
-                varyings o; // 输出变量
-                o.positionCS = GetShadowPositionHClip(v); // 获取阴影裁剪空间位置
-                return o; // 返回裁剪空间位置
+                varyings o;
+                o.positionCS = GetShadowPositionHClip(v);
+                return o;
             }
 
-            float4 ShadowFS(varyings i) : SV_Target //阴影投射片段着色器主函数
+            float4 ShadowFS(varyings i) : SV_Target
             {
-                return 0; // 返回0表示完全遮挡
+                return 0;
             }
-            ENDHLSL //HLSL结束
+            ENDHLSL
         }
 
         Pass
@@ -266,8 +269,6 @@ Shader "Toon Shader/Toon_Face" //着色器名称
 
             #pragma vertex vert
             #pragma fragment frag
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             struct Attributes
             {
