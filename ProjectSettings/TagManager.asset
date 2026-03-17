@@ -3,15 +3,16 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Secondary Camera
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Eblana
   - Water
   - UI
-  - 
+  - Surtr
   - 
   - 
   - 
