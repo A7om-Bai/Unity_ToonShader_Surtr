@@ -38,7 +38,7 @@ Shader "Toon Shader/Toon_Body"
         Tags
         {
             "RenderType"="Opaque"
-            "RenderPipeline" = "UniversalRenderPipeline"
+            "RenderPipeline" = "UniversalPipeline"
         }
 
         HLSLINCLUDE
@@ -93,7 +93,7 @@ Shader "Toon Shader/Toon_Body"
             #pragma vertex vert
             #pragma fragment frag
 
-            struct attributes
+            struct Attributes
             {
                 float4 positionOS : POSITION;
                 float2 uv : TEXCOORD0;
@@ -102,19 +102,19 @@ Shader "Toon Shader/Toon_Body"
                 float4 color : COLOR;
             };
 
-            struct varryings
+            struct Varryings
             {
                 float4 positionCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                float3 normalWS : TEXCOORD1;
-                float4 tangentWS : TEXCOORD2;
-                float3 positionWS : TEXCOORD3;
+                float3 positionWS : TEXCOORD0;
+                float2 uv : TEXCOORD1;
+                float3 normalWS : TEXCOORD2;
+                float4 tangentWS : TEXCOORD3;
                 half4 color : COLOR;
             };
 
-            varryings vert(attributes v)
+            Varryings vert(Attributes v)
             {
-                varryings o;
+                Varryings o;
                 VertexPositionInputs VertexInput = GetVertexPositionInputs (v.positionOS.xyz);
                 VertexNormalInputs NormalInput = GetVertexNormalInputs(v.normalOS, v.tangentOS);
                 o.positionWS = VertexInput.positionWS;
@@ -127,73 +127,68 @@ Shader "Toon Shader/Toon_Body"
                 return o;
             }
 
-            half4 frag(varryings i) : SV_Target
+            float4 frag(Varryings i) : SV_Target
             {
-                Light light = GetMainLight();
-                half3 nWS = normalize(i.normalWS);
-                half4 vertexColor = i.color;
+                float4 vertexColor = i.color;
 
                 // 采样切线空间法线（UnpackNormal把 0~1 转成 -1~1，并处理法线格式）
-                half3 normalTS = UnpackNormal(tex2D(_NormalMap, i.uv));
+                float3 normalTS = UnpackNormal(tex2D(_NormalMap, i.uv));
                 normalTS.xy *= _NormalStrength;
                 normalTS.z = sqrt(saturate(1.0h - dot(normalTS.xy, normalTS.xy)));
 
                 // 构造 TBN
-                half3 tWS = normalize(i.tangentWS.xyz);
-                half3 bWS = normalize(cross(nWS, tWS) * i.tangentWS.w);
+                float3 nWS = normalize(i.normalWS);
+                float3 tWS = normalize(i.tangentWS.xyz);
+                float3 bWS = normalize(cross(nWS, tWS) * i.tangentWS.w);
 
-                half3 N = normalize(
-                    normalTS.x * tWS +
-                    normalTS.y * bWS +
-                    normalTS.z * nWS
-                );
+                float3x3 TBN = float3x3(tWS,bWS,nWS);
 
-                half3 V = normalize(_WorldSpaceCameraPos - i.positionWS);
-
-                half3 L = normalize(light.direction);
-
-                half NoL = saturate(dot(N,L));
-                half NoV = saturate(dot(N,V));
-
+                Light light = GetMainLight();
+                float3 L = normalize(light.direction);
+                float3 N = normalize(mul(normalTS,TBN));
+                float3 V = normalize(_WorldSpaceCameraPos - i.positionWS);
                 float3 H = normalize(L + V);
 
-                float3 specular = light.color * pow(saturate(dot(N, H)), 64) * _SpecularStrength; // 简单的高光计算
+                float NoL = saturate(dot(N,L));
+                float NoV = saturate(dot(N,V));
+                float NoH = saturate(dot(N,H));
 
-                half4 baseColor = tex2D(_BaseMap, i.uv);
 
-                half lambert = NoL;
-                half halflambert = lambert * 0.5 + 0.5;
+                float3 specular = light.color * pow(NoH, 64) * _SpecularStrength;
+                float4 baseColor = tex2D(_BaseMap, i.uv);
+
+                float lambert = NoL;
+                float halflambert = lambert * 0.5 + 0.5;
                 halflambert *= pow(halflambert,2);
-                half lambertstep = smoothstep(0.01, 0.4, halflambert);
-                half shadowFactor = lerp(0, halflambert, lambertstep);
+                float lambertstep = smoothstep(0.01, 0.4, halflambert);
+                float shadowFactor = lerp(0, halflambert, lambertstep);
 
-                half isShadowArea = step(halflambert, _ShadowPosition);
-                half shadowDepth = saturate((_ShadowPosition - halflambert) / _ShadowRampWidth);
+                // 计算阴影区域和阴影深度
+                float isShadowArea = step(halflambert, _ShadowPosition);
+                float shadowDepth = saturate((_ShadowPosition - halflambert) / _ShadowRampWidth);
                 shadowDepth = pow(shadowDepth, _ShadowSoftness);
                 shadowDepth = min(shadowDepth, 1.0);
-                half rampWidthFactor = vertexColor.g * 2 * _ShadowRampWidth;
-                half shadowPosition = (_ShadowPosition - shadowFactor) / _ShadowPosition;
+                float rampWidthFactor = vertexColor.g * 2 * _ShadowRampWidth;
+                float shadowPosition = (_ShadowPosition - shadowFactor) / _ShadowPosition;
 
                 // 应用渐变阴影
-                half rampU = 1 - saturate (shadowDepth / rampWidthFactor);
-                half rampV = 0.5;
-                half rampUV = half2(rampU, rampV);
-                half3 rampColor = tex2D(_RampTex, rampUV).rgb;
+                float rampU = 1 - saturate (shadowDepth / rampWidthFactor);
+                float rampV = 0.5;
+                float rampUV = float2(rampU, rampV);
+                float3 rampColor = tex2D(_RampTex, rampUV).rgb;
 
                 float rim = 1 - saturate(dot(N,V));
-
                 rim = pow(rim, _RimPower);
                 rim *= NoL;
-
                 float3 rimLight = rim * _RimColor.rgb * _RimIntensity;
 
                 #ifdef _USE_RAMP_SHADOW
-                    half3 finalcolor = baseColor.rgb * rampColor * (isShadowArea ? 1 : 1.2) + specular + rimLight; // 在阴影区域内使用渐变阴影颜色，在非阴影区域内略微提升亮度
+                    float3 finalcolor = baseColor.rgb * rampColor * (isShadowArea ? 1 : 1.2) + specular + rimLight; // 在阴影区域内使用渐变阴影颜色，在非阴影区域内略微提升亮度
                 #else
-                    half3 finalcolor = baseColor.rgb * halflambert + specular + rimLight; // 不使用渐变阴影时，直接使用半兰伯特光照模型计算颜色，并添加高光和边缘光照
+                    float3 finalcolor = baseColor.rgb * halflambert + specular + rimLight; // 不使用渐变阴影时，直接使用半兰伯特光照模型计算颜色，并添加高光和边缘光照
                 #endif
 
-                half3 c = finalcolor;
+                float3 c = finalcolor;
                 c *= _Tint.rgb;
                 c *= _Exposure;
                 c = (c - 0.5h) * _Contrast + 0.5h;
@@ -202,7 +197,7 @@ Shader "Toon Shader/Toon_Body"
                 finalcolor = c;
 
 
-                return half4(finalcolor, 1);
+                return float4(finalcolor, 1);
             }
 
             ENDHLSL
@@ -232,19 +227,19 @@ Shader "Toon Shader/Toon_Body"
             float3 _LightDirection;
             float3 _LightPosition;
 
-            struct attributes
+            struct Attributes
             {
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
             };
 
-            struct varryings
+            struct Varryings
             {
                 float4 positionCS : SV_POSITION;
             };
 
             // 将阴影的世界空间顶点位置转换为适合阴影投射的裁剪空间位置
-            float4 GetShadowPositionHClip(attributes v)
+            float4 GetShadowPositionHClip(Attributes v)
             {
                 float3 positionWS = TransformObjectToWorld(v.positionOS.xyz);
                 float3 normalWS = TransformObjectToWorldNormal(v.normalOS);
@@ -266,14 +261,14 @@ Shader "Toon Shader/Toon_Body"
                 return positionCS;
             }
 
-            varryings ShadowVS (attributes v)
+            Varryings ShadowVS (Attributes v)
             {
-                varryings o;
+                Varryings o;
                 o.positionCS = GetShadowPositionHClip(v);
                 return o;
             }
 
-            float4 ShadowFS(varryings i) : SV_Target
+            float4 ShadowFS(Varryings i) : SV_Target
             {
                 return 0;
             }
