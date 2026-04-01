@@ -31,7 +31,7 @@ Shader "Toon Shader/Toon_Face"
         Tags
         {
             "RenderType"="Opaque"
-            "RenderPipeline" = "UniversalRenderPipeline"
+            "RenderPipeline" = "UniversalPipeline"
         }
 
         HLSLINCLUDE
@@ -80,23 +80,23 @@ Shader "Toon Shader/Toon_Face"
             #pragma vertex vert
             #pragma fragment frag
 
-            struct attributes
+            struct Attributes
             {
                 float4 positionOS : POSITION;
-                float2 uv : TEXCOORD0;
                 float3 normalOS : NORMAL;
+                float2 uv : TEXCOORD0;
             };
 
-            struct varyings
+            struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                float3 normalWS : TEXCOORD1;
+                float3 normalWS : TEXCOORD0;
+                float2 uv : TEXCOORD1;
             };
 
-            varyings vert(attributes v)
+            Varyings vert(Attributes v)
             {
-                varyings o;
+                Varyings o;
                 VertexPositionInputs VertexInput = GetVertexPositionInputs (v.positionOS.xyz);
                 VertexNormalInputs NormalInput = GetVertexNormalInputs (v.normalOS);
                 o.positionCS = VertexInput.positionCS;
@@ -105,78 +105,76 @@ Shader "Toon Shader/Toon_Face"
                 return o;
             }
 
-            half4 frag(varyings i) : SV_Target
+            float4 frag(Varyings i) : SV_Target
             {
+                float4 baseColor = tex2D(_BaseMap, i.uv);
+                float4 shadowMask = tex2D(_ShadowMask, i.uv);
+
+                float3 headRightDir   = normalize(TransformObjectToWorldDir(float3(1,0,0)));
+                float3 headUpDir      = normalize(TransformObjectToWorldDir(float3(0,1,0)));
+                float3 headForwardDir = normalize(TransformObjectToWorldDir(float3(0,0,1)));
+
                 Light light = GetMainLight();
-                half3 N = normalize(i.normalWS);
-                half3 L = normalize(light.direction);
-                half NoL = dot(N,L);
-
-                half3 headRightDir   = normalize(TransformObjectToWorldDir(half3(1,0,0)));
-                half3 headUpDir      = normalize(TransformObjectToWorldDir(half3(0,1,0)));
-                half3 headForwardDir = normalize(TransformObjectToWorldDir(half3(0,0,1)));
-
-                half4 baseColor = tex2D(_BaseMap, i.uv);
-                half4 shadowMask = tex2D(_ShadowMask, i.uv);
-
-                half lambert = NoL;
-                half halflambert = lambert * 0.5 + 0.5;
+                float3 N = normalize(i.normalWS);
+                float3 L = normalize(light.direction);
+                float NoL = dot(N,L);
+                float lambert = NoL;
+                float halflambert = lambert * 0.5 + 0.5;
                 halflambert *= pow(halflambert,1);
 
                 //计算光照在头部坐标系中的投影，判断光源相对于头部的方向，生成阴影边界
+
                 //去除垂直分量，得到光 L 在 Up 方向的分量
-                half3 LpU = dot(L, headUpDir) / pow(length(headUpDir), 2) * headUpDir;
+                float3 LpU = dot(L, headUpDir) / pow(length(headUpDir), 2) * headUpDir;
                 //得到光在水平方向的分量，作为头部水平面上的光照方向
-                half3 LpHeadHorizon = normalize(L- LpU);
+                float3 LpHeadHorizon = normalize(L- LpU);
 
-                //计算光与头右方向夹角
-                half value = acos(dot(LpHeadHorizon, headRightDir)) / 3.141592654;
+                //把“光的水平角度”变成一个可以查表/插值的参数
+                float value = acos(dot(LpHeadHorizon, headRightDir)) / 3.141592654;
 
-                //判断左右
-                half exposeRight = step(value, 0.5);
+                //根据光的水平角度参数，生成一个左右脸权重的step函数，作为后续插值的权重
+                float exposeRight = step(value, 0.5);
 
-                //计算阴影位置，生成阴影边界
-                half valueR = pow(1 - value * 2, 3);
-                half valueL = pow(value * 2 - 1, 3);
-                half mixValue = lerp(valueL, valueR, exposeRight);
+                //做“非线性权重分布”,把value值从[0,1]映射成[-1,1],即把无方向的值转化成有方向的值。
+                float valueR = pow(1 - value * 2, 3);
+                float valueL = pow(value * 2 - 1, 3);
+                float mixValue = lerp(valueL, valueR, exposeRight);
 
                 //左右脸分开采样
-                half sdfLeft = tex2D(_SDF, half2(1 - i.uv.x, i.uv.y)).r;
-                half sdfRight = tex2D(_SDF, i.uv).r;
+                float sdfLeft = tex2D(_SDF, float2(1 - i.uv.x, i.uv.y)).r;
+                float sdfRight = tex2D(_SDF, i.uv).r;
 
                 //混合
-                half mixSdf = lerp(sdfRight, sdfLeft, exposeRight);
+                float mixSdf = lerp(sdfRight, sdfLeft, exposeRight);
 
                 //柔和阴影边界
                 float sdfSoft = 0.05;
-                half sdf = smoothstep(mixValue - sdfSoft, mixValue + sdfSoft, mixSdf);
+                float sdf = smoothstep(mixValue - sdfSoft, mixValue + sdfSoft, mixSdf);
 
-                // 只有当头部朝向光源时才考虑SDF阴影，否则直接全亮，避免背面出现不自然的阴影
+                // 只有当头部朝向光源时才考虑SDF阴影，否则直接全亮
                 sdf = lerp(0, sdf, step(0, dot(LpHeadHorizon, headForwardDir)));
                 sdf *= shadowMask.g;
 
                 //利用shadowMask的alpha通道控制SDF阴影的强度，避免过于突兀的边界（眼睛、鼻子、嘴巴）
                 sdf = lerp(sdf, 1, shadowMask.a);
 
-                // 如果启用SDF阴影，则使用SDF阴影颜色，否则使用传统的半兰伯特阴影
                 #ifdef _USE_SDF_SHADOW
-                    half3 finalcolor = lerp(_ShadowColor.rgb * baseColor.rgb, baseColor.rgb, sdf);
+                    float3 finalcolor = lerp(_ShadowColor.rgb * baseColor.rgb, baseColor.rgb, sdf);
                 #else
-                    half3 finalcolor = baseColor.rgb * halflambert;
+                    float3 finalcolor = baseColor.rgb * halflambert;
                 #endif
 
-                //正面补光，根据头部朝向光源的程度提升亮度，避免正面过暗（尤其是当光源位于侧面时），且限制在1.1倍
-                half frontBoost = saturate(dot(L, headForwardDir));
+                //正面补光
+                float frontBoost = saturate(dot(L, headForwardDir));
                 finalcolor *= lerp(1.0, 1.1, frontBoost);
 
-                half3 c = finalcolor;
+                float3 c = finalcolor;
                 c *= _Tint.rgb;
                 c *= _Exposure;
-                c = (c - 0.5h) * _Contrast + 0.5h; //contrast（以 0.5 为中心拉对比，避免提亮后发灰）
+                c = (c - 0.5f) * _Contrast + 0.5f;
                 c = saturate(c);
-                finalcolor = c;
 
-                return float4(finalcolor, 1);
+                return float4(c, 1);
             }
 
             ENDHLSL

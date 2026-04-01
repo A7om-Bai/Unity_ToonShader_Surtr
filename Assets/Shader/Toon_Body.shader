@@ -21,6 +21,7 @@ Shader "Toon Shader/Toon_Body"
         _ShadowSoftness ("Shadow Softness", Float) = 0.5
 
         [Header(Specular)]
+        _ReflectStrength ("Reflection Strength", Range(0, 5)) = 0.5
         _SpecularStrength ("Specular Strength", Range(0, 5)) = 1.0
 
         [Header(Outline)]
@@ -58,11 +59,17 @@ Shader "Toon Shader/Toon_Body"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl" // 光照库
 
             CBUFFER_START (UnityPerMaterial)
-                sampler2D _BaseMap;
-                sampler2D _NormalMap;
+                TEXTURE2D(_BaseMap);
+                SAMPLER(sampler_BaseMap);
+                float4 _BaseMap_ST;
+                TEXTURE2D(_NormalMap);
+                SAMPLER(sampler_NormalMap);
+                float4 _NormalMap_ST;
+                TEXTURE2D(_RampTex);
+                SAMPLER(sampler_RampTex);
+                float4 _RampTex_ST;
                 float _NormalStrength;
                 float _SpecularStrength;
-                sampler2D _RampTex;
                 float _ShadowRampWidth;
                 float _ShadowPosition;
                 float _ShadowSoftness;
@@ -74,6 +81,7 @@ Shader "Toon Shader/Toon_Body"
                 float _RimIntensity;
                 float _OutlineWidth;
                 float4 _OutlineColor;
+                float _ReflectStrength;
             CBUFFER_END
         ENDHLSL
 
@@ -106,9 +114,13 @@ Shader "Toon Shader/Toon_Body"
             {
                 float4 positionCS : SV_POSITION;
                 float3 positionWS : TEXCOORD0;
-                float2 uv : TEXCOORD1;
-                float3 normalWS : TEXCOORD2;
-                float4 tangentWS : TEXCOORD3;
+
+                float2 uvBase    : TEXCOORD1;
+                float2 uvNormal   : TEXCOORD2;
+
+                float3 normalWS   : TEXCOORD3;
+                float4 tangentWS : TEXCOORD4;
+
                 half4 color : COLOR;
             };
 
@@ -120,9 +132,9 @@ Shader "Toon Shader/Toon_Body"
                 o.positionWS = VertexInput.positionWS;
                 o.normalWS = NormalInput.normalWS;
                 o.tangentWS = float4(NormalInput.tangentWS, v.tangentOS.w);
-                
                 o.positionCS = VertexInput.positionCS;
-                o.uv = v.uv;
+                o.uvBase = TRANSFORM_TEX(v.uv, _BaseMap);
+                o.uvNormal = TRANSFORM_TEX(v.uv, _NormalMap);
                 o.color = v.color;
                 return o;
             }
@@ -132,7 +144,7 @@ Shader "Toon Shader/Toon_Body"
                 float4 vertexColor = i.color;
 
                 // 采样切线空间法线（UnpackNormal把 0~1 转成 -1~1，并处理法线格式）
-                float3 normalTS = UnpackNormal(tex2D(_NormalMap, i.uv));
+                float3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uvNormal));
                 normalTS.xy *= _NormalStrength;
                 normalTS.z = sqrt(saturate(1.0h - dot(normalTS.xy, normalTS.xy)));
 
@@ -153,9 +165,8 @@ Shader "Toon Shader/Toon_Body"
                 float NoV = saturate(dot(N,V));
                 float NoH = saturate(dot(N,H));
 
-
-                float3 specular = light.color * pow(NoH, 64) * _SpecularStrength;
-                float4 baseColor = tex2D(_BaseMap, i.uv);
+                float3 specular = light.color * pow(NoH, 128) * _SpecularStrength;
+                float4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uvBase);
 
                 float lambert = NoL;
                 float halflambert = lambert * 0.5 + 0.5;
@@ -175,7 +186,7 @@ Shader "Toon Shader/Toon_Body"
                 float rampU = 1 - saturate (shadowDepth / rampWidthFactor);
                 float rampV = 0.5;
                 float rampUV = float2(rampU, rampV);
-                float3 rampColor = tex2D(_RampTex, rampUV).rgb;
+                float3 rampColor = SAMPLE_TEXTURE2D(_RampTex, sampler_RampTex, rampUV).rgb;
 
                 float rim = 1 - saturate(dot(N,V));
                 rim = pow(rim, _RimPower);
@@ -187,6 +198,12 @@ Shader "Toon Shader/Toon_Body"
                 #else
                     float3 finalcolor = baseColor.rgb * halflambert + specular + rimLight; // 不使用渐变阴影时，直接使用半兰伯特光照模型计算颜色，并添加高光和边缘光照
                 #endif
+
+                 // 反射向量和环境贴图采样,可选
+                float3 R = reflect(-V, N);
+                float4 reflectColor = SAMPLE_TEXTURECUBE (unity_SpecCube0, samplerunity_SpecCube0, R);
+                float fresnel = pow(1 - saturate(dot(N,V)), 5);
+                finalcolor += reflectColor.rgb * _ReflectStrength * fresnel; // 添加环境反射颜色，乘以反射强度和菲涅尔系数
 
                 float3 c = finalcolor;
                 c *= _Tint.rgb;

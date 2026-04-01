@@ -135,6 +135,7 @@ Material:
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _ReceiveShadows: 1
+    - _ReflectStrength: 0.19
     - _RimIntensity: 1.39
     - _RimPower: 2.66
     - _ShadowPosition: 0.89
