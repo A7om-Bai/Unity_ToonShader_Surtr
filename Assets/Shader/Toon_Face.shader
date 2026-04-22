@@ -51,9 +51,12 @@ Shader "Toon Shader/Toon_Face"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             CBUFFER_START (UnityPerMaterial)
-                sampler2D _BaseMap;
-                sampler2D _SDF;
-                sampler2D _ShadowMask;
+                TEXTURE2D(_BaseMap);
+                SAMPLER(sampler_BaseMap);
+                TEXTURE2D(_SDF);
+                SAMPLER(sampler_SDF);
+                TEXTURE2D(_ShadowMask);
+                SAMPLER(sampler_ShadowMask);
                 float3 _HeadForward;
                 float3 _HeadRight;
                 float3 _HeadUp;
@@ -98,8 +101,8 @@ Shader "Toon Shader/Toon_Face"
             {
                 Varyings o;
                 VertexPositionInputs VertexInput = GetVertexPositionInputs (v.positionOS.xyz);
-                VertexNormalInputs NormalInput = GetVertexNormalInputs (v.normalOS);
                 o.positionCS = VertexInput.positionCS;
+                VertexNormalInputs NormalInput = GetVertexNormalInputs (v.normalOS);
                 o.normalWS = NormalInput.normalWS;
                 o.uv = v.uv;
                 return o;
@@ -107,12 +110,12 @@ Shader "Toon Shader/Toon_Face"
 
             float4 frag(Varyings i) : SV_Target
             {
-                float4 baseColor = tex2D(_BaseMap, i.uv);
-                float4 shadowMask = tex2D(_ShadowMask, i.uv);
+                float4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv);
+                float4 shadowMask = SAMPLE_TEXTURE2D(_ShadowMask, sampler_ShadowMask, i.uv);
 
-                float3 headRightDir   = normalize(TransformObjectToWorldDir(float3(1,0,0)));
-                float3 headUpDir      = normalize(TransformObjectToWorldDir(float3(0,1,0)));
-                float3 headForwardDir = normalize(TransformObjectToWorldDir(float3(0,0,1)));
+                float3 headRightDir   = normalize(TransformObjectToWorldDir(_HeadRight));
+                float3 headUpDir      = normalize(TransformObjectToWorldDir(_HeadUp));
+                float3 headForwardDir = normalize(TransformObjectToWorldDir(_HeadForward));
 
                 Light light = GetMainLight();
                 float3 N = normalize(i.normalWS);
@@ -122,17 +125,9 @@ Shader "Toon Shader/Toon_Face"
                 float halflambert = lambert * 0.5 + 0.5;
                 halflambert *= pow(halflambert,1);
 
-                //计算光照在头部坐标系中的投影，判断光源相对于头部的方向，生成阴影边界
-
-                //去除垂直分量，得到光 L 在 Up 方向的分量
                 float3 LpU = dot(L, headUpDir) / pow(length(headUpDir), 2) * headUpDir;
-                //得到光在水平方向的分量，作为头部水平面上的光照方向
                 float3 LpHeadHorizon = normalize(L- LpU);
-
-                //把“光的水平角度”变成一个可以查表/插值的参数
-                float value = acos(dot(LpHeadHorizon, headRightDir)) / 3.141592654;
-
-                //根据光的水平角度参数，生成一个左右脸权重的step函数，作为后续插值的权重
+                float value = acos(dot(LpHeadHorizon, headRightDir)) / PI; //把“光的水平角度”变成一个可以查表/插值的参数
                 float exposeRight = step(value, 0.5);
 
                 //做“非线性权重分布”,把value值从[0,1]映射成[-1,1],即把无方向的值转化成有方向的值。
@@ -141,14 +136,12 @@ Shader "Toon Shader/Toon_Face"
                 float mixValue = lerp(valueL, valueR, exposeRight);
 
                 //左右脸分开采样
-                float sdfLeft = tex2D(_SDF, float2(1 - i.uv.x, i.uv.y)).r;
-                float sdfRight = tex2D(_SDF, i.uv).r;
-
-                //混合
+                float sdfRight = SAMPLE_TEXTURE2D(_SDF, sampler_SDF,i.uv).r;
+                float sdfLeft = SAMPLE_TEXTURE2D(_SDF, sampler_SDF,float2(1 - i.uv.x, i.uv.y)).r;
                 float mixSdf = lerp(sdfRight, sdfLeft, exposeRight);
 
                 //柔和阴影边界
-                float sdfSoft = 0.05;
+                float sdfSoft = 0.1;
                 float sdf = smoothstep(mixValue - sdfSoft, mixValue + sdfSoft, mixSdf);
 
                 // 只有当头部朝向光源时才考虑SDF阴影，否则直接全亮

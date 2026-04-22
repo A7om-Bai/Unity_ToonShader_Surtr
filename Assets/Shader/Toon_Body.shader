@@ -18,11 +18,12 @@ Shader "Toon Shader/Toon_Body"
         [Header(ShadowRamp)]
         _ShadowRampWidth ("Shadow Ramp Width", Float) = 1
         _ShadowPosition ("Shadow Position", Float) = 0.55
-        _ShadowSoftness ("Shadow Softness", Float) = 0.5
+        _ShadowSoftness ("Shadow Softness", Range(0,5)) = 0.5
 
         [Header(Specular)]
         _ReflectStrength ("Reflection Strength", Range(0, 5)) = 0.5
         _SpecularStrength ("Specular Strength", Range(0, 5)) = 1.0
+        _Shininess ("Shininess", Range(1, 256)) = 128
 
         [Header(Outline)]
         _OutlineWidth ("Outline Width", Range(0,0.002)) = 0.001
@@ -82,6 +83,7 @@ Shader "Toon Shader/Toon_Body"
                 float _OutlineWidth;
                 float4 _OutlineColor;
                 float _ReflectStrength;
+                float _Shininess;
             CBUFFER_END
         ENDHLSL
 
@@ -110,7 +112,7 @@ Shader "Toon Shader/Toon_Body"
                 float4 color : COLOR;
             };
 
-            struct Varryings
+            struct Varyings
             {
                 float4 positionCS : SV_POSITION;
                 float3 positionWS : TEXCOORD0;
@@ -121,25 +123,30 @@ Shader "Toon Shader/Toon_Body"
                 float3 normalWS   : TEXCOORD3;
                 float4 tangentWS : TEXCOORD4;
 
-                half4 color : COLOR;
+                float4 color : COLOR;
             };
 
-            Varryings vert(Attributes v)
+            Varyings vert(Attributes v)
             {
-                Varryings o;
+                Varyings o;
+
                 VertexPositionInputs VertexInput = GetVertexPositionInputs (v.positionOS.xyz);
-                VertexNormalInputs NormalInput = GetVertexNormalInputs(v.normalOS, v.tangentOS);
                 o.positionWS = VertexInput.positionWS;
+                o.positionCS = VertexInput.positionCS;
+
+                VertexNormalInputs NormalInput = GetVertexNormalInputs(v.normalOS, v.tangentOS);
                 o.normalWS = NormalInput.normalWS;
                 o.tangentWS = float4(NormalInput.tangentWS, v.tangentOS.w);
-                o.positionCS = VertexInput.positionCS;
+
                 o.uvBase = TRANSFORM_TEX(v.uv, _BaseMap);
                 o.uvNormal = TRANSFORM_TEX(v.uv, _NormalMap);
+
                 o.color = v.color;
+
                 return o;
             }
 
-            float4 frag(Varryings i) : SV_Target
+            float4 frag(Varyings i) : SV_Target
             {
                 float4 vertexColor = i.color;
 
@@ -148,11 +155,9 @@ Shader "Toon Shader/Toon_Body"
                 normalTS.xy *= _NormalStrength;
                 normalTS.z = sqrt(saturate(1.0h - dot(normalTS.xy, normalTS.xy)));
 
-                // 构造 TBN
                 float3 nWS = normalize(i.normalWS);
                 float3 tWS = normalize(i.tangentWS.xyz);
                 float3 bWS = normalize(cross(nWS, tWS) * i.tangentWS.w);
-
                 float3x3 TBN = float3x3(tWS,bWS,nWS);
 
                 Light light = GetMainLight();
@@ -165,14 +170,14 @@ Shader "Toon Shader/Toon_Body"
                 float NoV = saturate(dot(N,V));
                 float NoH = saturate(dot(N,H));
 
-                float3 specular = light.color * pow(NoH, 128) * _SpecularStrength;
+                float3 specular = light.color *_SpecularStrength * pow(NoH, _Shininess);
                 float4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uvBase);
 
                 float lambert = NoL;
                 float halflambert = lambert * 0.5 + 0.5;
                 halflambert *= pow(halflambert,2);
                 float lambertstep = smoothstep(0.01, 0.4, halflambert);
-                float shadowFactor = lerp(0, halflambert, lambertstep);
+                float shadowFactor = lerp(0, halflambert, lambertstep); //等价halflambert*lambertstep，压死暗部，保留亮部，以此增强对比度
 
                 // 计算阴影区域和阴影深度
                 float isShadowArea = step(halflambert, _ShadowPosition);
@@ -180,7 +185,6 @@ Shader "Toon Shader/Toon_Body"
                 shadowDepth = pow(shadowDepth, _ShadowSoftness);
                 shadowDepth = min(shadowDepth, 1.0);
                 float rampWidthFactor = vertexColor.g * 2 * _ShadowRampWidth;
-                float shadowPosition = (_ShadowPosition - shadowFactor) / _ShadowPosition;
 
                 // 应用渐变阴影
                 float rampU = 1 - saturate (shadowDepth / rampWidthFactor);
@@ -194,12 +198,12 @@ Shader "Toon Shader/Toon_Body"
                 float3 rimLight = rim * _RimColor.rgb * _RimIntensity;
 
                 #ifdef _USE_RAMP_SHADOW
-                    float3 finalcolor = baseColor.rgb * rampColor * (isShadowArea ? 1 : 1.2) + specular + rimLight; // 在阴影区域内使用渐变阴影颜色，在非阴影区域内略微提升亮度
+                    float3 finalcolor = baseColor.rgb * rampColor * (isShadowArea ? 1 : 1.2) + specular + rimLight;
                 #else
-                    float3 finalcolor = baseColor.rgb * halflambert + specular + rimLight; // 不使用渐变阴影时，直接使用半兰伯特光照模型计算颜色，并添加高光和边缘光照
+                    float3 finalcolor = baseColor.rgb * halflambert + specular + rimLight;
                 #endif
 
-                 // 反射向量和环境贴图采样,可选
+                 // IBL(SpecCube0默认是Skybox)反射向量和环境贴图采样,可选
                 float3 R = reflect(-V, N);
                 float4 reflectColor = SAMPLE_TEXTURECUBE (unity_SpecCube0, samplerunity_SpecCube0, R);
                 float fresnel = pow(1 - saturate(dot(N,V)), 5);
@@ -209,10 +213,8 @@ Shader "Toon Shader/Toon_Body"
                 c *= _Tint.rgb;
                 c *= _Exposure;
                 c = (c - 0.5h) * _Contrast + 0.5h;
-                // 防止溢出
                 c = saturate(c);
                 finalcolor = c;
-
 
                 return float4(finalcolor, 1);
             }
@@ -250,12 +252,12 @@ Shader "Toon Shader/Toon_Body"
                 float3 normalOS : NORMAL;
             };
 
-            struct Varryings
+            struct Varyings
             {
                 float4 positionCS : SV_POSITION;
             };
 
-            // 将阴影的世界空间顶点位置转换为适合阴影投射的裁剪空间位置
+            // 将阴影的世界空间顶点位置转换为适合阴影投射的齐次裁剪空间位置
             float4 GetShadowPositionHClip(Attributes v)
             {
                 float3 positionWS = TransformObjectToWorld(v.positionOS.xyz);
@@ -267,25 +269,25 @@ Shader "Toon Shader/Toon_Body"
                     float3 lightDirectionWS = _LightDirection;
                 #endif
 
-                float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS)); // 应用阴影偏移
+                float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS)); // 应用阴影偏移，防止阴影痤疮，数学意义为positionWS = positionWS + normalWS * bias + lightDirectionWS * bias，bias值根据场景规模和光源类型调整
 
-                #if UNITY_REVERSED_Z // 反转Z缓冲区
-                    positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE); // 限制Z值在近裁剪平面以下
-                #else // 正向Z缓冲区
-                    positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE); // 限制Z值在远裁剪平面以上
+                #if UNITY_REVERSED_Z
+                    positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE); // 限制Z值在近裁剪平面以下（反向Z时，近裁剪平面对应的Z值较大）
+                #else
+                    positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE); // 限制Z值在近裁剪平面以上（正向Z时，近裁剪平面对应的Z值较小）
                 #endif
 
                 return positionCS;
             }
 
-            Varryings ShadowVS (Attributes v)
+            Varyings ShadowVS (Attributes v)
             {
-                Varryings o;
+                Varyings o;
                 o.positionCS = GetShadowPositionHClip(v);
                 return o;
             }
 
-            float4 ShadowFS(Varryings i) : SV_Target
+            float4 ShadowFS(Varyings i) : SV_Target
             {
                 return 0;
             }

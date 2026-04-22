@@ -141,6 +141,7 @@ Material:
     - _ShadowPosition: 0.68
     - _ShadowRampWidth: 0.8
     - _ShadowSoftness: 1.21
+    - _Shininess: 128
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
