@@ -1,4 +1,4 @@
-Shader "Toon Shader/Toon_Body"
+Shader "Toon Shader/Toon_Skin"
 {
     Properties
     {
@@ -38,7 +38,7 @@ Shader "Toon Shader/Toon_Body"
         Tags
         {
             "RenderType"="Opaque"
-            "RenderPipeline" = "UniversalRenderPipeline"
+            "RenderPipeline" = "UniversalPipeline"
         }
 
         HLSLINCLUDE

@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Mouth
+  m_Shader: {fileID: 4800000, guid: af7fb037c4c736947ba0c75969b055bf, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: 96234bc43d4b1334db297b23aab5dae1, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ExtraMap:
+        m_Texture: {fileID: 2800000, guid: 69f3397ec173df94481576bd8bfe4a55, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EyeBlendMap:
+        m_Texture: {fileID: 2800000, guid: b7124a1e6f2fe5b4a8fbb31c869f36e2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SDF:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ShadowMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SkinRampTex:
+        m_Texture: {fileID: 2800000, guid: 4ba3ff5239be1bb4987136ccf72d1fb7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Contrast: 1
+    - _Exposure: 1
+    - _LightBoost: 1.08
+    - _OutlineWidth: 0.001
+    - _OverlayIntensity: 0
+    - _ShadowPosition: 0.48
+    - _ShadowSoftness: 0.18
+    - _USE_SDF_SHADOW: 0
+    m_Colors:
+    - _HeadForward: {r: 0, g: 0, b: 1, a: 0}
+    - _HeadRight: {r: 1, g: 0, b: 0, a: 0}
+    - _HeadUp: {r: 0, g: 1, b: 0, a: 0}
+    - _OutlineColor: {r: 0.089999996, g: 0.049999982, b: 0.049999982, a: 1}
+    - _ShadowColor: {r: 0.78, g: 0.56, b: 0.52, a: 1}
+    - _Tint: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []

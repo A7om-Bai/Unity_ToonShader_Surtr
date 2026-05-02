@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Eyes+
+  m_Shader: {fileID: 4800000, guid: a42a26041ccbc474bb6bb07fde8effa3, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: df37a8caf9a1b8a49b29f4175764ad84, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ExtraMap:
+        m_Texture: {fileID: 2800000, guid: 69f3397ec173df94481576bd8bfe4a55, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EyeBlendMap:
+        m_Texture: {fileID: 2800000, guid: b7124a1e6f2fe5b4a8fbb31c869f36e2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ShineMap:
+        m_Texture: {fileID: 2800000, guid: 799d0570db005444bbc7d73cc4739cdc, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Contrast: 1.07
+    - _Exposure: 1
+    - _ExtraIntensity: 1.42
+    - _EyeBlendIntensity: 0.85
+    - _LightBoost: 0.644
+    - _OutlineWidth: 0.0005
+    - _OverlayIntensity: 0.85
+    - _ShineIntensity: 1.25
+    m_Colors:
+    - _OutlineColor: {r: 0.04, g: 0.025, b: 0.03, a: 1}
+    - _ShadowColor: {r: 0.67058825, g: 0.2862745, b: 0.34365314, a: 1}
+    - _ShineColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Tint: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
