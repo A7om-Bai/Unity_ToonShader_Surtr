@@ -28,7 +28,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MatCapMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: a0ef596b2d358434a89ff912af76dc86, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
@@ -47,8 +47,8 @@ Material:
     m_Floats:
     - _Contrast: 1
     - _Exposure: 1
-    - _LightBoost: 1.517
-    - _MatCapIntensity: 0
+    - _LightBoost: 1.3
+    - _MatCapIntensity: 0.06
     - _MetallicStrength: 1.75
     - _NormalStrength: 1.33
     - _OcclusionStrength: 0.75

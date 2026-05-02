@@ -51,7 +51,7 @@ Material:
     m_Floats:
     - _AlphaClip: 1
     - _Contrast: 1
-    - _Cutoff: 0.5
+    - _Cutoff: 0.217
     - _Exposure: 1
     - _ExtraIntensity: 0
     - _EyeBlendIntensity: 0.16

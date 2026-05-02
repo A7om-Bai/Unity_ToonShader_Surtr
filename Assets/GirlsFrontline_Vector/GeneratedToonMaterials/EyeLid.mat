@@ -50,9 +50,9 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaClip: 0
-    - _Contrast: 1
+    - _Contrast: 0.98
     - _Cutoff: 0.5
-    - _Exposure: 1
+    - _Exposure: 1.612
     - _ExtraIntensity: 0
     - _EyeBlendIntensity: 0
     - _LightBoost: 1.08
@@ -67,5 +67,5 @@ Material:
     - _HeadUp: {r: 0, g: 1, b: 0, a: 0}
     - _OutlineColor: {r: 0.089999996, g: 0.049999982, b: 0.049999982, a: 1}
     - _ShadowColor: {r: 0.78, g: 0.56, b: 0.52, a: 1}
-    - _Tint: {r: 1, g: 1, b: 1, a: 1}
+    - _Tint: {r: 0.9528302, g: 0.9123708, b: 0.84046817, a: 1}
   m_BuildTextureStacks: []
