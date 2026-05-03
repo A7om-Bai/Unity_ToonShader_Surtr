@@ -165,7 +165,7 @@ Shader "Toon Shader/Toon_VectorFace"
                     float3 headRightDir = normalize(TransformObjectToWorldDir(_HeadRight));
                     float3 headUpDir = normalize(TransformObjectToWorldDir(_HeadUp));
                     float3 headForwardDir = normalize(TransformObjectToWorldDir(_HeadForward));
-                    float3 lightUp = dot(L, headUpDir) / max(dot(headUpDir, headUpDir), 0.0001) * headUpDir;
+                    float3 lightUp = dot(L, headUpDir) / pow(length(headUpDir), 2) * headUpDir;
                     float3 lightFlat = L - lightUp;
                     float flatLength = max(length(lightFlat), 0.0001);
                     float3 lightHorizon = lightFlat / flatLength;

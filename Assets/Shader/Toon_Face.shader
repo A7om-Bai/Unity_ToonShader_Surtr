@@ -125,9 +125,9 @@ Shader "Toon Shader/Toon_Face"
                 float halflambert = lambert * 0.5 + 0.5;
                 halflambert *= pow(halflambert,1);
 
-                float3 LpU = dot(L, headUpDir) / pow(length(headUpDir), 2) * headUpDir;
-                float3 LpHeadHorizon = normalize(L- LpU);
-                float value = acos(dot(LpHeadHorizon, headRightDir)) / PI; //把“光的水平角度”变成一个可以查表/插值的参数
+                float3 lightUP = dot(L, headUpDir) / pow(length(headUpDir), 2) * headUpDir;
+                float3 lightHorizon = normalize(L- lightUP);
+                float value = acos(dot(lightHorizon, headRightDir)) / PI; //把“光的水平角度”变成一个可以查表/插值的参数
                 float exposeRight = step(value, 0.5);
 
                 //做“非线性权重分布”,把value值从[0,1]映射成[-1,1],即把无方向的值转化成有方向的值。
@@ -145,7 +145,7 @@ Shader "Toon Shader/Toon_Face"
                 float sdf = smoothstep(mixValue - sdfSoft, mixValue + sdfSoft, mixSdf);
 
                 // 只有当头部朝向光源时才考虑SDF阴影，否则直接全亮
-                sdf = lerp(0, sdf, step(0, dot(LpHeadHorizon, headForwardDir)));
+                sdf = lerp(0, sdf, step(0, dot(lightHorizon, headForwardDir)));
                 sdf *= shadowMask.g;
 
                 //利用shadowMask的alpha通道控制SDF阴影的强度，避免过于突兀的边界（眼睛、鼻子、嘴巴）
