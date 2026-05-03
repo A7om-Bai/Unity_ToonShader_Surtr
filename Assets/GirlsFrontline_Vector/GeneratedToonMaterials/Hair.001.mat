@@ -49,7 +49,7 @@ Material:
     - _Contrast: 1
     - _Exposure: 1
     - _LightBoost: 1.18
-    - _MatCapIntensity: 0.8
+    - _MatCapIntensity: 1
     - _NormalStrength: 0.4
     - _OutlineWidth: 0.00065
     - _ShadowPosition: 0.4
