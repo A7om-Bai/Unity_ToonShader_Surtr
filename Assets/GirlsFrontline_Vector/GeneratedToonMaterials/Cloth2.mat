@@ -48,7 +48,7 @@ Material:
     - _Contrast: 1
     - _Exposure: 1
     - _LightBoost: 1.668
-    - _MatCapIntensity: 0.06
+    - _MatCapIntensity: 0.14
     - _MetallicStrength: 2
     - _NormalStrength: 1.66
     - _OcclusionStrength: 0.876

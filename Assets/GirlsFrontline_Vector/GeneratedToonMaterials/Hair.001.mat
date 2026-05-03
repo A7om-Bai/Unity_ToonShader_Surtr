@@ -49,12 +49,13 @@ Material:
     - _Contrast: 1
     - _Exposure: 1
     - _LightBoost: 1.18
-    - _MatCapIntensity: 0.65
+    - _MatCapIntensity: 0.8
     - _NormalStrength: 0.4
-    - _OutlineWidth: 0.00062
-    - _ShadowPosition: 0.42
-    - _ShadowSoftness: 0.1
+    - _OutlineWidth: 0.00065
+    - _ShadowPosition: 0.4
+    - _ShadowSoftness: 0.5
     - _SpecularStrength: 0.8
+    - _ZWrite: 1
     m_Colors:
     - _OutlineColor: {r: 0.1509434, g: 0.05887598, b: 0.03488786, a: 1}
     - _ShadowColor: {r: 0.41999996, g: 0.35999998, b: 0.31999996, a: 1}

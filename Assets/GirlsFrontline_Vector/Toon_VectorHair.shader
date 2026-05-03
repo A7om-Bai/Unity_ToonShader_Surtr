@@ -25,6 +25,7 @@ Shader "Toon Shader/Toon_VectorHair"
         [Header(Outline)]
         _OutlineWidth ("Outline Width", Range(0,0.01)) = 0.001
         _OutlineColor ("Outline Color", Color) = (0.07,0.05,0.04,1)
+        [Enum(Off,0,On,1)] _ZWrite ("Z Write", Float) = 1
 
         [Header(Color Adjust)]
         _Exposure ("Exposure", Range(0.5, 2.0)) = 1.0
@@ -68,6 +69,7 @@ Shader "Toon Shader/Toon_VectorHair"
                 float _SpecularStrength;
                 float _AnisoPower;
                 float _OutlineWidth;
+                float _ZWrite;
                 float4 _OutlineColor;
                 float _Exposure;
                 float _Contrast;
@@ -94,6 +96,15 @@ Shader "Toon Shader/Toon_VectorHair"
             Name "UniversalForward"
             Tags { "LightMode"="UniversalForward" }
             Cull Off
+            ZWrite [_ZWrite]
+            ZTest LEqual
+            Stencil
+            {
+                Ref 64
+                WriteMask 64
+                Comp Always
+                Pass Replace
+            }
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -171,8 +182,15 @@ Shader "Toon Shader/Toon_VectorHair"
             Name "Outline"
             Tags { "LightMode"="SRPDefaultUnlit" }
             Cull Front
-            ZWrite On
+            ZWrite [_ZWrite]
             ZTest LEqual
+            Stencil
+            {
+                Ref 64
+                WriteMask 64
+                Comp Always
+                Pass Replace
+            }
 
             HLSLPROGRAM
             #pragma vertex vert

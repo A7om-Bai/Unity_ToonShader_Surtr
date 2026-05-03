@@ -240,6 +240,7 @@ public class VectorToonMaterialBinder : EditorWindow
         {
             SetFaceTextures(mat);
             SetFaceOverlay(mat, 0f, 0f);
+            SetEyeThroughBlocker(mat, true);
             mat.SetColor("_Tint", new Color(0.28f, 0.22f, 0.2f, 1f));
         }));
 
@@ -247,11 +248,20 @@ public class VectorToonMaterialBinder : EditorWindow
         {
             SetFaceTextures(mat);
             SetFaceOverlay(mat, 0f, 0f);
+            SetEyeThroughBlocker(mat, true);
             mat.SetColor("_Tint", new Color(0.12f, 0.1f, 0.1f, 1f));
         }));
 
-        Add(materials, "EyeLid", CreateOrUpdateMaterial(materialFolder, "EyeLid", faceShader, SetAtlasCutoutTextures));
-        Add(materials, "EyeShadow", CreateOrUpdateMaterial(materialFolder, "EyeShadow", faceShader, SetAtlasCutoutTextures));
+        Add(materials, "EyeLid", CreateOrUpdateMaterial(materialFolder, "EyeLid", faceShader, mat =>
+        {
+            SetAtlasCutoutTextures(mat);
+            SetEyeThroughBlocker(mat, true);
+        }));
+        Add(materials, "EyeShadow", CreateOrUpdateMaterial(materialFolder, "EyeShadow", faceShader, mat =>
+        {
+            SetAtlasCutoutTextures(mat);
+            SetEyeThroughBlocker(mat, true);
+        }));
         Add(materials, "EyeWhite", CreateOrUpdateMaterial(materialFolder, "EyeWhite", faceShader, SetAtlasCutoutTextures));
         Add(materials, "Mouth", CreateOrUpdateMaterial(materialFolder, "Mouth", faceShader, SetAtlasCutoutTextures));
         Add(materials, "Tongue", CreateOrUpdateMaterial(materialFolder, "Tongue", faceShader, SetAtlasCutoutTextures));
@@ -332,6 +342,7 @@ public class VectorToonMaterialBinder : EditorWindow
         SetFloat(material, "_ExtraIntensity", extraIntensity);
         SetFloat(material, "_AlphaClip", 0f);
         SetFloat(material, "_Cutoff", 0.5f);
+        SetEyeThroughBlocker(material, false);
         material.SetOverrideTag("RenderType", "Opaque");
         material.renderQueue = -1;
     }
@@ -346,8 +357,14 @@ public class VectorToonMaterialBinder : EditorWindow
         SetFloat(material, "_ExtraIntensity", 0f);
         SetFloat(material, "_AlphaClip", 1f);
         SetFloat(material, "_Cutoff", 0.2f);
+        SetEyeThroughBlocker(material, false);
         material.SetOverrideTag("RenderType", "TransparentCutout");
         material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+    }
+
+    private void SetEyeThroughBlocker(Material material, bool enabled)
+    {
+        SetFloat(material, "_EyeThroughBlocker", enabled ? 1f : 0f);
     }
 
     private void SetHairTextures(Material material)
@@ -359,6 +376,8 @@ public class VectorToonMaterialBinder : EditorWindow
         SetTexture(material, "_RampTex", skinRamp);
         material.SetFloat("_MatCapIntensity", hairSpa != null ? 0.65f : 0f);
         material.SetFloat("_SpecularStrength", shine1 != null ? 0.8f : 0f);
+        SetFloat(material, "_ZWrite", 1f);
+        material.renderQueue = -1;
     }
 
     private void SetEyeTextures(Material material)
@@ -370,6 +389,9 @@ public class VectorToonMaterialBinder : EditorWindow
         SetFloat(material, "_EyeBlendIntensity", eyeBlend != null ? 0.85f : 0f);
         SetFloat(material, "_ExtraIntensity", 0f);
         material.SetFloat("_ShineIntensity", shine1 != null ? 1f : 0f);
+        SetFloat(material, "_ZTest", (float)UnityEngine.Rendering.CompareFunction.LessEqual);
+        SetFloat(material, "_ThroughHairIntensity", 0.45f);
+        material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry + 20;
     }
 
     private void SetTexture(Material material, string propertyName, Texture2D texture)

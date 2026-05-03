@@ -21,6 +21,10 @@ Shader "Toon Shader/Toon_VectorEye"
         [Header(Outline)]
         _OutlineWidth ("Outline Width", Range(0,0.01)) = 0.0005
         _OutlineColor ("Outline Color", Color) = (0.04,0.025,0.03,1)
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("Depth Test", Float) = 4
+
+        [Header(Through Hair)]
+        _ThroughHairIntensity ("Through Hair Intensity", Range(0, 1)) = 0.45
 
         [Header(Color Adjust)]
         _Exposure ("Exposure", Range(0.5, 2.0)) = 1.0
@@ -53,6 +57,8 @@ Shader "Toon Shader/Toon_VectorEye"
                 float4 _ShadowColor;
                 float _LightBoost;
                 float _OutlineWidth;
+                float _ZTest;
+                float _ThroughHairIntensity;
                 float4 _OutlineColor;
                 float _Exposure;
                 float _Contrast;
@@ -78,6 +84,8 @@ Shader "Toon Shader/Toon_VectorEye"
             Name "UniversalForward"
             Tags { "LightMode"="UniversalForward" }
             Cull Off
+            ZWrite On
+            ZTest [_ZTest]
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -130,11 +138,73 @@ Shader "Toon Shader/Toon_VectorEye"
 
         Pass
         {
+            Name "ThroughHair"
+            Tags { "LightMode"="SRPDefaultUnlit" }
+            Cull Off
+            ZWrite Off
+            ZTest Greater
+            Blend SrcAlpha OneMinusSrcAlpha
+            Stencil
+            {
+                Ref 64
+                ReadMask 192
+                Comp Equal
+                Pass Keep
+            }
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+                float2 uv : TEXCOORD0;
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_POSITION;
+                float3 normalWS : TEXCOORD0;
+                float2 uv : TEXCOORD1;
+            };
+
+            Varyings vert(Attributes v)
+            {
+                Varyings o;
+                VertexPositionInputs pos = GetVertexPositionInputs(v.positionOS.xyz);
+                VertexNormalInputs normal = GetVertexNormalInputs(v.normalOS);
+                o.positionCS = pos.positionCS;
+                o.normalWS = normal.normalWS;
+                o.uv = TRANSFORM_TEX(v.uv, _BaseMap);
+                return o;
+            }
+
+            float4 frag(Varyings i) : SV_Target
+            {
+                float4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv);
+                float4 blend = SAMPLE_TEXTURE2D(_EyeBlendMap, sampler_EyeBlendMap, TRANSFORM_TEX(i.uv, _EyeBlendMap));
+                float4 extra = SAMPLE_TEXTURE2D(_ExtraMap, sampler_ExtraMap, TRANSFORM_TEX(i.uv, _ExtraMap));
+                float shine = SAMPLE_TEXTURE2D(_ShineMap, sampler_ShineMap, TRANSFORM_TEX(i.uv, _ShineMap)).r;
+
+                float3 color = AlphaBlend(baseColor.rgb, blend, _EyeBlendIntensity);
+                color = AlphaBlend(color, extra, _ExtraIntensity);
+                color += shine * _ShineColor.rgb * _ShineIntensity;
+
+                clip(_ThroughHairIntensity - 0.001);
+                return float4(Adjust(color), saturate(baseColor.a * _ThroughHairIntensity));
+            }
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "Outline"
             Tags { "LightMode"="SRPDefaultUnlit" }
             Cull Front
             ZWrite On
-            ZTest LEqual
+            ZTest [_ZTest]
 
             HLSLPROGRAM
             #pragma vertex vert

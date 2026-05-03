@@ -33,7 +33,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EyeBlendMap:
-        m_Texture: {fileID: 2800000, guid: b7124a1e6f2fe5b4a8fbb31c869f36e2, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SDF:
@@ -53,14 +53,15 @@ Material:
     - _AlphaClip: 0
     - _Contrast: 1
     - _Cutoff: 0.5
-    - _Exposure: 0.981
+    - _Exposure: 0.953
     - _ExtraIntensity: 0
     - _EyeBlendIntensity: 0
-    - _LightBoost: 1.557
+    - _EyeThroughBlocker: 0
+    - _LightBoost: 1.755
     - _OutlineWidth: 0.00125
     - _OverlayIntensity: 0.5
-    - _ShadowPosition: 0.448
-    - _ShadowSoftness: 0.129
+    - _ShadowPosition: 0.454
+    - _ShadowSoftness: 0.134
     - _USE_SDF_SHADOW: 1
     m_Colors:
     - _HeadForward: {r: 0, g: 0, b: 1, a: 0}
