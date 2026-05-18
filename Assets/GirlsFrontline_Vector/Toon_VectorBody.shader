@@ -185,7 +185,7 @@ Shader "Toon Shader/Toon_VectorBody"
 
                 float3 additionalLighting = 0;
 
-                #if defined(_ADDITIONAL_LIGHTS)
+                #ifdef _ADDITIONAL_LIGHTS
                 uint additionalLightsCount = GetAdditionalLightsCount();
 
                 for (uint lightIndex = 0u; lightIndex < additionalLightsCount; lightIndex++)

@@ -156,7 +156,8 @@ Shader "Toon Shader/Toon_VectorHair"
                 float3 nWS = normalize(i.normalWS);
                 float3 tWS = normalize(i.tangentWS.xyz);
                 float3 bWS = normalize(cross(nWS, tWS) * i.tangentWS.w);
-                float3 N = normalize(mul(normalTS, float3x3(tWS, bWS, nWS)));
+                float3x3 TBN = float3x3(tWS, bWS, nWS);
+                float3 N = normalize(mul(normalTS, TBN));
 
                 Light light = GetMainLight(i.shadowCoord);
                 float3 L = normalize(light.direction);
@@ -169,9 +170,10 @@ Shader "Toon Shader/Toon_VectorHair"
                 float3 toonLight = lerp(_ShadowColor.rgb, rampColor * _LightBoost, toonStep);
                 toonLight *= light.color * light.shadowAttenuation;
 
+                // Additional Lights (up to 4)
                 float3 additionalLighting = 0;
 
-                #if defined(_ADDITIONAL_LIGHTS)
+                #ifdef _ADDITIONAL_LIGHTS
                 uint additionalLightCount = GetAdditionalLightsCount();
 
                 for (uint lightIndex = 0u; lightIndex < additionalLightCount; lightIndex++)

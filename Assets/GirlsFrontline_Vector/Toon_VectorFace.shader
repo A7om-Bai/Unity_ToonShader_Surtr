@@ -165,7 +165,7 @@ Shader "Toon Shader/Toon_VectorFace"
                 //计算附加光源
                 float3 additionalLighting = 0;
 
-                #if defined(_ADDITIONAL_LIGHTS)
+                #ifdef _ADDITIONAL_LIGHTS
                 uint additionalLightsCount = GetAdditionalLightsCount();
 
                 for(uint lightIndex = 0u; lightIndex < additionalLightsCount; lightIndex++)
