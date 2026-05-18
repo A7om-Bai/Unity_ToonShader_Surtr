@@ -61,7 +61,7 @@ Material:
     - _SpecularStrength: 0.32
     m_Colors:
     - _MatCapColor: {r: 1, g: 1, b: 1, a: 1}
-    - _OutlineColor: {r: 0.084905684, g: 0.053151872, b: 0.04045035, a: 1}
+    - _OutlineColor: {r: 0.0754717, g: 0.027767887, b: 0.0039159846, a: 1}
     - _RimColor: {r: 1, g: 1, b: 1, a: 1}
     - _ShadowColor: {r: 0.54999995, g: 0.5, b: 0.47999996, a: 1}
     - _SpecularColor: {r: 0.990566, g: 0.990566, b: 0.990566, a: 1}

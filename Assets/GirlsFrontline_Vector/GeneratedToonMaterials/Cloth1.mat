@@ -52,7 +52,7 @@ Material:
     - _MetallicStrength: 1.75
     - _NormalStrength: 1.33
     - _OcclusionStrength: 0.75
-    - _OutlineWidth: 0.002
+    - _OutlineWidth: 0.0018
     - _RimIntensity: 0.32
     - _RimPower: 3
     - _ShadowPosition: 0.909
@@ -61,7 +61,7 @@ Material:
     - _SpecularStrength: 0.65
     m_Colors:
     - _MatCapColor: {r: 1, g: 1, b: 1, a: 1}
-    - _OutlineColor: {r: 0.16037738, g: 0.10255939, b: 0.07943219, a: 1}
+    - _OutlineColor: {r: 0.14150941, g: 0.06223961, b: 0.028702382, a: 1}
     - _RimColor: {r: 1, g: 1, b: 1, a: 1}
     - _ShadowColor: {r: 0.54999995, g: 0.5, b: 0.47999996, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}

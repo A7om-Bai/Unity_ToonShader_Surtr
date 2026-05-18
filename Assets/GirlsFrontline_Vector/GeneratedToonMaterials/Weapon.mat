@@ -52,7 +52,7 @@ Material:
     - _MetallicStrength: 1
     - _NormalStrength: 1
     - _OcclusionStrength: 0.75
-    - _OutlineWidth: 0.001
+    - _OutlineWidth: 0.0019
     - _RimIntensity: 0.35
     - _RimPower: 3
     - _ShadowPosition: 0.45

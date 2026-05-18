@@ -51,7 +51,7 @@ Material:
     - _LightBoost: 1.18
     - _MatCapIntensity: 1
     - _NormalStrength: 0.4
-    - _OutlineWidth: 0.00087
+    - _OutlineWidth: 0.0007
     - _ShadowPosition: 0.4
     - _ShadowSoftness: 0.5
     - _SpecularStrength: 0.8

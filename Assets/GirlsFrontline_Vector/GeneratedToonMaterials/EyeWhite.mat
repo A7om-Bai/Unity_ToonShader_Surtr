@@ -55,6 +55,7 @@ Material:
     - _Exposure: 1
     - _ExtraIntensity: 0
     - _EyeBlendIntensity: 0
+    - _EyeThroughBlocker: 0
     - _LightBoost: 1.08
     - _OutlineWidth: 0.001
     - _OverlayIntensity: 0
