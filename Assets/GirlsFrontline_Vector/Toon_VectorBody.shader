@@ -51,9 +51,11 @@ Shader "Toon Shader/Toon_VectorBody"
         }
 
         HLSLINCLUDE
-            #pragma multi_compile _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _SHADOWS_SOFT
 
@@ -180,6 +182,22 @@ Shader "Toon Shader/Toon_VectorBody"
                 float3 rampColor = SAMPLE_TEXTURE2D(_RampTex, sampler_RampTex, float2(toonStep, 0.5)).rgb;
                 float3 toonLight = lerp(_ShadowColor.rgb, rampColor * _LightBoost, toonStep);
                 toonLight *= light.color * light.shadowAttenuation;
+
+                float3 additionalLighting = 0;
+
+                #if defined(_ADDITIONAL_LIGHTS)
+                uint additionalLightsCount = GetAdditionalLightsCount();
+
+                for (uint lightIndex = 0u; lightIndex < additionalLightsCount; lightIndex++)
+                {
+                    Light additionalLight = GetAdditionalLight(lightIndex, i.positionWS);
+                    float additionalNdL = saturate(dot(N, additionalLight.direction));
+
+                    additionalLighting += additionalLight.color * additionalNdL * additionalLight.shadowAttenuation * additionalLight.distanceAttenuation * 0.25;
+                }
+                #endif
+
+                toonLight += additionalLighting;
 
                 float4 rmo = SAMPLE_TEXTURE2D(_RMOMap, sampler_RMOMap, i.uvRMO);
                 float roughness = saturate(rmo.r);

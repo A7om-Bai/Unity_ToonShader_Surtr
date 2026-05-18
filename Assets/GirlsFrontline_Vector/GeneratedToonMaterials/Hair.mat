@@ -48,7 +48,7 @@ Material:
     - _AnisoPower: 96
     - _Contrast: 1
     - _Exposure: 1
-    - _LightBoost: 1.18
+    - _LightBoost: 0.66
     - _MatCapIntensity: 1
     - _NormalStrength: 0.4
     - _OutlineWidth: 0.0007

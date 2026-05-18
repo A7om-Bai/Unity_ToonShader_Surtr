@@ -38,9 +38,11 @@ Shader "Toon Shader/Toon_VectorHair"
         Tags { "RenderType"="Opaque" "RenderPipeline"="UniversalPipeline" }
 
         HLSLINCLUDE
-            #pragma multi_compile _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_SGADOWS
             #pragma multi_compile_fragment _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _SHADOWS_SOFT
 
@@ -166,6 +168,22 @@ Shader "Toon Shader/Toon_VectorHair"
                 float3 rampColor = SAMPLE_TEXTURE2D(_RampTex, sampler_RampTex, float2(toonStep, 0.5)).rgb;
                 float3 toonLight = lerp(_ShadowColor.rgb, rampColor * _LightBoost, toonStep);
                 toonLight *= light.color * light.shadowAttenuation;
+
+                float3 additionalLighting = 0;
+
+                #if defined(_ADDITIONAL_LIGHTS)
+                uint additionalLightCount = GetAdditionalLightsCount();
+
+                for (uint lightIndex = 0u; lightIndex < additionalLightCount; lightIndex++)
+                {
+                    Light additionalLight = GetAdditionalLight(lightIndex, i.positionWS);
+                    float additionalNdL = saturate(dot(N, additionalLight.direction));
+
+                    additionalLighting += additionalLight.color * additionalNdL * additionalLight.distanceAttenuation * additionalLight.shadowAttenuation * 0.25;
+                }
+                #endif
+
+                toonLight += additionalLighting;
 
                 float aniso = pow(saturate(1.0 - abs(dot(normalize(tWS), H))), _AnisoPower);
                 float specMask = SAMPLE_TEXTURE2D(_SpecMap, sampler_SpecMap, i.uv).r;

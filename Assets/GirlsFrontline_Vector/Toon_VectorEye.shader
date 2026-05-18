@@ -90,6 +90,8 @@ Shader "Toon Shader/Toon_VectorEye"
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
 
             struct Attributes
             {
@@ -101,8 +103,9 @@ Shader "Toon Shader/Toon_VectorEye"
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float3 normalWS : TEXCOORD0;
-                float2 uv : TEXCOORD1;
+                float3 positionWS : TEXCOORD0;
+                float3 normalWS : TEXCOORD1;
+                float2 uv : TEXCOORD2;
             };
 
             Varyings vert(Attributes v)
@@ -111,6 +114,7 @@ Shader "Toon Shader/Toon_VectorEye"
                 VertexPositionInputs pos = GetVertexPositionInputs(v.positionOS.xyz);
                 VertexNormalInputs normal = GetVertexNormalInputs(v.normalOS);
                 o.positionCS = pos.positionCS;
+                o.positionWS = pos.positionWS;
                 o.normalWS = normal.normalWS;
                 o.uv = TRANSFORM_TEX(v.uv, _BaseMap);
                 return o;
@@ -124,10 +128,34 @@ Shader "Toon Shader/Toon_VectorEye"
                 float shine = SAMPLE_TEXTURE2D(_ShineMap, sampler_ShineMap, TRANSFORM_TEX(i.uv, _ShineMap)).r;
 
                 Light light = GetMainLight();
-                float ndl = saturate(dot(normalize(i.normalWS), normalize(light.direction)) * 0.5 + 0.5);
+                float3 normalWS = normalize(i.normalWS);
+                float ndl = saturate(dot(normalWS, normalize(light.direction)) * 0.5 + 0.5);
                 float3 lit = lerp(_ShadowColor.rgb, light.color * _LightBoost, ndl);
 
+                //AdditionalLights
+                float3 additionalLighting = 0;
+
+                #if defined(_ADDITIONAL_LIGHTS)
+                uint additionalLightsCount = GetAdditionalLightsCount();
+
+                for (uint lightIndex = 0u; lightIndex < additionalLightsCount; lightIndex++)
+                {
+                    Light additionalLight = GetAdditionalLight(lightIndex, i.positionWS);
+
+                    float additionalNdl = saturate(dot(normalWS, additionalLight.direction));
+
+                    additionalLighting +=
+                        additionalNdl *
+                        additionalLight.color *
+                        additionalLight.distanceAttenuation *
+                        additionalLight.shadowAttenuation *
+                        0.25;
+                }
+                #endif
+
+                lit += additionalLighting;
                 float3 color = baseColor.rgb * lit;
+
                 color = AlphaBlend(color, blend, _EyeBlendIntensity);
                 color = AlphaBlend(color, extra, _ExtraIntensity);
                 color += shine * _ShineColor.rgb * _ShineIntensity;

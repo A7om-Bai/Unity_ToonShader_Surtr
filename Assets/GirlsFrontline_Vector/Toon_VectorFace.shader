@@ -48,9 +48,11 @@ Shader "Toon Shader/Toon_VectorFace"
         }
 
         HLSLINCLUDE
-            #pragma multi_compile _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_SGADOWS
             #pragma multi_compile_fragment _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _SHADOWS_SOFT
             #pragma shader_feature_local _USE_SDF_SHADOW
@@ -159,8 +161,26 @@ Shader "Toon Shader/Toon_VectorFace"
                 float3 rampColor = SAMPLE_TEXTURE2D(_SkinRampTex, sampler_SkinRampTex, float2(toonStep, 0.5)).rgb;
                 float3 litColor = lerp(_ShadowColor.rgb, rampColor * _LightBoost, toonStep);
                 litColor *= light.color * light.shadowAttenuation;
+
+                //计算附加光源
+                float3 additionalLighting = 0;
+
+                #if defined(_ADDITIONAL_LIGHTS)
+                uint additionalLightsCount = GetAdditionalLightsCount();
+
+                for(uint lightIndex = 0u; lightIndex < additionalLightsCount; lightIndex++)
+                {
+                    Light additionalLight = GetAdditionalLight(lightIndex, i.positionWS);
+                    float additionalNdL = saturate(dot(N, additionalLight.direction));
+                    additionalLighting += additionalLight.color * additionalNdL * additionalLight.shadowAttenuation * additionalLight.distanceAttenuation * 0.25;
+                }
+                #endif
+
+                litColor += additionalLighting;
+
                 float3 color = baseColor.rgb * litColor;
 
+                //应用SDF贴图
                 #ifdef _USE_SDF_SHADOW
                     float3 headRightDir = normalize(TransformObjectToWorldDir(_HeadRight));
                     float3 headUpDir = normalize(TransformObjectToWorldDir(_HeadUp));
