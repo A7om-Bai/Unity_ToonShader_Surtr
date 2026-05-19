@@ -186,15 +186,15 @@ Shader "Toon Shader/Toon_VectorBody"
                 float3 additionalLighting = 0;
 
                 #ifdef _ADDITIONAL_LIGHTS
-                uint additionalLightsCount = GetAdditionalLightsCount();
+                    uint additionalLightsCount = GetAdditionalLightsCount();
 
-                for (uint lightIndex = 0u; lightIndex < additionalLightsCount; lightIndex++)
-                {
-                    Light additionalLight = GetAdditionalLight(lightIndex, i.positionWS);
-                    float additionalNdL = saturate(dot(N, additionalLight.direction));
+                    for (uint lightIndex = 0u; lightIndex < additionalLightsCount; lightIndex++)
+                    {
+                        Light additionalLight = GetAdditionalLight(lightIndex, i.positionWS);
+                        float additionalNdL = saturate(dot(N, additionalLight.direction));
 
-                    additionalLighting += additionalLight.color * additionalNdL * additionalLight.shadowAttenuation * additionalLight.distanceAttenuation * 0.25;
-                }
+                        additionalLighting += additionalLight.color * additionalNdL * additionalLight.shadowAttenuation * additionalLight.distanceAttenuation * 0.25;
+                    }
                 #endif
 
                 toonLight += additionalLighting;

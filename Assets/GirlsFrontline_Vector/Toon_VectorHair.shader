@@ -174,15 +174,15 @@ Shader "Toon Shader/Toon_VectorHair"
                 float3 additionalLighting = 0;
 
                 #ifdef _ADDITIONAL_LIGHTS
-                uint additionalLightCount = GetAdditionalLightsCount();
+                    uint additionalLightCount = GetAdditionalLightsCount();
 
-                for (uint lightIndex = 0u; lightIndex < additionalLightCount; lightIndex++)
-                {
-                    Light additionalLight = GetAdditionalLight(lightIndex, i.positionWS);
-                    float additionalNdL = saturate(dot(N, additionalLight.direction));
+                    for (uint lightIndex = 0u; lightIndex < additionalLightCount; lightIndex++)
+                    {
+                        Light additionalLight = GetAdditionalLight(lightIndex, i.positionWS);
+                        float additionalNdL = saturate(dot(N, additionalLight.direction));
 
-                    additionalLighting += additionalLight.color * additionalNdL * additionalLight.distanceAttenuation * additionalLight.shadowAttenuation * 0.25;
-                }
+                        additionalLighting += additionalLight.color * additionalNdL * additionalLight.distanceAttenuation * additionalLight.shadowAttenuation * 0.25;
+                    }
                 #endif
 
                 toonLight += additionalLighting;

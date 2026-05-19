@@ -28,7 +28,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MatCapMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: a0ef596b2d358434a89ff912af76dc86, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
@@ -48,17 +48,17 @@ Material:
     - _Contrast: 1
     - _Exposure: 1
     - _LightBoost: 1.15
-    - _MatCapIntensity: 0
-    - _MetallicStrength: 1
+    - _MatCapIntensity: 0.66
+    - _MetallicStrength: 0.32
     - _NormalStrength: 1.7
     - _OcclusionStrength: 1
     - _OutlineWidth: 0.0019
-    - _RimIntensity: 0.35
+    - _RimIntensity: 0.23
     - _RimPower: 3
     - _ShadowPosition: 0.45
     - _ShadowSoftness: 0.12
-    - _SmoothnessStrength: 1
-    - _SpecularStrength: 0.65
+    - _SmoothnessStrength: 0.07
+    - _SpecularStrength: 1.47
     m_Colors:
     - _MatCapColor: {r: 1, g: 1, b: 1, a: 1}
     - _OutlineColor: {r: 0.079999976, g: 0.059999965, b: 0.049999982, a: 1}

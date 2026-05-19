@@ -136,21 +136,21 @@ Shader "Toon Shader/Toon_VectorEye"
                 float3 additionalLighting = 0;
 
                 #ifdef _ADDITIONAL_LIGHTS
-                uint additionalLightsCount = GetAdditionalLightsCount();
+                    uint additionalLightsCount = GetAdditionalLightsCount();
 
-                for (uint lightIndex = 0u; lightIndex < additionalLightsCount; lightIndex++)
-                {
-                    Light additionalLight = GetAdditionalLight(lightIndex, i.positionWS);
+                    for (uint lightIndex = 0u; lightIndex < additionalLightsCount; lightIndex++)
+                    {
+                        Light additionalLight = GetAdditionalLight(lightIndex, i.positionWS);
 
-                    float additionalNdl = saturate(dot(normalWS, additionalLight.direction));
+                        float additionalNdl = saturate(dot(normalWS, additionalLight.direction));
 
-                    additionalLighting +=
-                        additionalNdl *
-                        additionalLight.color *
-                        additionalLight.distanceAttenuation *
-                        additionalLight.shadowAttenuation *
-                        0.25;
-                }
+                        additionalLighting +=
+                            additionalNdl *
+                            additionalLight.color *
+                            additionalLight.distanceAttenuation *
+                            additionalLight.shadowAttenuation *
+                            0.25;
+                    }
                 #endif
 
                 lit += additionalLighting;
